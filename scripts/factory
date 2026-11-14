@@ -1,0 +1,388 @@
+#!/usr/bin/env bash
+# Canonical Graph Protocol factory. Shell owns effects; jq owns pure contract decisions.
+# Trust nothing at the orchestration boundary; trust everything inside a delegated subgraph.
+set -euo pipefail
+export LC_ALL=C
+HERE=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+FILTER="$HERE/lib/contract.jq"
+command -v jq >/dev/null || { echo 'ERROR [DEPENDENCY] jq required' >&2; exit 2; }
+command -v git >/dev/null || { echo 'ERROR [DEPENDENCY] git required' >&2; exit 2; }
+command -v flock >/dev/null || { echo 'ERROR [DEPENDENCY] flock required (Linux implementation)' >&2; exit 2; }
+command -v sha256sum >/dev/null || { echo 'ERROR [DEPENDENCY] sha256sum required' >&2; exit 2; }
+fail(){ printf 'ERROR [%s] %s\n' "$1" "$2" >&2; exit 1; }
+hash(){ sha256sum "$1" | cut -d' ' -f1; }
+hash_text(){ sha256sum | cut -d' ' -f1; }
+json(){ jq -cS "$@"; }
+canonical(){ jq -cS . "$1"; }
+contract(){ jq -e -L "$HERE/lib" 'include "contract"; '"$1" "${@:2}"; }
+atomic_file(){ local dest=$1 tmp; mkdir -p "$(dirname "$dest")"; tmp=$(mktemp "${dest}.tmp.XXXXXX"); cat >"$tmp"; chmod 600 "$tmp"; mv -f -- "$tmp" "$dest"; }
+repo(){ git -C "$1" rev-parse --show-toplevel 2>/dev/null || fail REPOSITORY "not a Git working tree: $1"; }
+repoid(){ local common; common=$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || fail REPOSITORY 'cannot resolve Git common directory'; (cd "$common" && pwd -P); }
+abs(){ case "$1" in /*) printf '%s\n' "$1";; *) printf '%s/%s\n' "$PWD" "$1";; esac; }
+# GRAPH remains immutable. Mutable observations live alongside it, never inside A/E/R.
+setup_paths(){ GRAPH=$(abs "$GRAPH"); EV="${GRAPH%.json}.evidence"; LOCK="$EV/.lock"; }
+statefile(){ printf '%s/%s.state.json' "$EV" "$1"; }
+receiptfile(){ printf '%s/%s.receipt.json' "$EV" "$1"; }
+returnfile(){ printf '%s/%s.return.json' "$EV" "$1"; }
+manifestfile(){ printf '%s/%s.before.json' "$EV" "$1"; }
+logfile(){ printf '%s/%s.log' "$EV" "$1"; }
+# One lease across ALL graphs in this Git worktree. A linked worktree has a
+# distinct --git-dir, so it can run independently. No daemon or shared queue.
+leasefile(){ local gitdir; gitdir=$(git -C "$1" rev-parse --path-format=absolute --git-dir 2>/dev/null) || fail REPOSITORY 'cannot resolve worktree Git directory'; printf '%s/heimdall-factory/active' "$gitdir"; }
+# The shared lock protects only state/sequence/lease transitions; never Git scanning or execution.
+lock(){ exec 9>"$LOCK"; flock -x 9; }
+unlock(){ flock -u 9; exec 9>&-; }
+seq(){ local num; read -r num <"$EV/sequence"; num=$((num+1)); printf '%s\n' "$num" | atomic_file "$EV/sequence"; printf '%s' "$num"; }
+node(){ jq -ce --arg id "$NODE" '.planned_nodes[]|select(.id==$id)' "$GRAPH" | head -1; }
+read_node(){ TASK=$(node); [[ -n $TASK ]] || fail CONTRACT "unknown node $NODE"; }
+checkgraph(){
+  [[ -f "$GRAPH" && -d "$EV" ]] || fail GRAPH 'graph not initialized';
+  contract 'valid_plan' "$GRAPH" >/dev/null || fail CONTRACT 'invalid plan';
+  local h expected; h=$(jq -cS '{schema_version,planned_nodes,repository_id}' "$GRAPH" | hash_text);
+  expected=$(jq -r '.plan_sha256 // empty' "$GRAPH");
+  [[ -n "$expected" && "$expected" == "$h" ]] || fail INTEGRITY 'approved graph changed';
+  [[ -n $(jq -r '.repository_id // empty' "$GRAPH") ]] || fail CONTRACT 'missing repository identity';
+}
+checkroot(){ ROOT=$(repo "$ROOT"); local id; id=$(repoid "$ROOT"); [[ $id == "$(jq -r .repository_id "$GRAPH")" ]] || fail REPOSITORY 'worktree is from a different repository'; }
+# Files outside root are permitted. Inside the worktree, evidence must be Git-ignored.
+check_ignored(){
+  case "$GRAPH" in "$ROOT"/*)
+    local rel=${GRAPH#"$ROOT"/};
+    git -C "$ROOT" check-ignore -q -- "$rel" || fail INTEGRITY 'graph must be ignored by Git; use .work/ or an external path';
+    ;;
+  esac
+}
+# STATUS snapshot: only dirty/staged/untracked paths are traversed, not all tracked files.
+# Includes both source/destination of rename, file mode via Git status, and dirty content hash.
+snapshot(){
+  local rt=$1 item xy p source target hashv sha_file rec i chunk
+  rt=$(repo "$rt")
+  local raw pairs hashed; raw=$(mktemp); pairs=$(mktemp); hashed=$(mktemp)
+  declare -A entries=()
+  declare -a regular=()
+  git -C "$rt" -c core.quotePath=false status --porcelain=v1 -z --untracked-files=all --ignore-submodules=none >"$raw" || { rm -f "$raw" "$pairs" "$hashed"; return 1; }
+  while IFS= read -r -d '' item; do
+    xy=${item:0:2}; p=${item:3}
+    [[ -n "$p" ]] || fail GIT 'empty Git path'
+    if [[ $xy == *R* || $xy == *C* ]]; then
+      IFS= read -r -d '' source || fail GIT 'truncated rename record'
+      entries["$source"]="deleted:$xy"
+    fi
+    if [[ -L "$rt/$p" ]]; then
+      hashv=$(readlink -n -- "$rt/$p" | hash_text)
+      entries["$p"]="link:$xy:$hashv"
+    elif [[ -f "$rt/$p" ]]; then
+      if [[ -x "$rt/$p" ]]; then entries["$p"]="file:$xy:x:"; else entries["$p"]="file:$xy:-:"; fi
+      regular+=("$rt/$p")
+    elif [[ -d "$rt/$p" ]]; then entries["$p"]="directory:$xy"
+    else entries["$p"]="deleted:$xy"
+    fi
+  done <"$raw"
+  # Hash changed regular files in batches. One process per 512 files, not per file.
+  for ((i=0;i<${#regular[@]};i+=512)); do
+    sha256sum --zero -- "${regular[@]:i:512}" >"$hashed" || fail GIT 'failed to hash dirty file'
+    while IFS= read -r -d '' rec; do
+      hashv=${rec:0:64}; sha_file=${rec:66}; p=${sha_file#"$rt"/}
+      [[ $p != "$sha_file" && -n ${entries[$p]+set} ]] || fail GIT 'invalid checksum record'
+      entries["$p"]+="$hashv"
+    done <"$hashed"
+  done
+  : >"$pairs"
+  for p in "${!entries[@]}"; do printf '%s\0%s\0' "$p" "${entries[$p]}" >>"$pairs"; done
+  local head; head=$(git -C "$rt" rev-parse HEAD) || fail GIT 'HEAD unavailable'
+  jq -Rs --arg root "$rt" --arg head "$head" '
+    split("\u0000") | .[:-1] as $items |
+    {root:$root,head:$head,files: (reduce range(0;$items|length;2) as $i ({}; .[$items[$i]]=$items[$i+1]))}' <"$pairs" | jq -cS .
+  rm -f "$raw" "$pairs" "$hashed"
+}
+changes(){ jq -cn --slurpfile a "$1" --slurpfile b "$2" '
+  ($a[0]) as $x | ($b[0]) as $y |
+  if ($x.root!=$y.root or $x.head!=$y.head) then error("worktree/HEAD changed") else
+    ([($x.files|keys_unsorted[]),($y.files|keys_unsorted[])]|unique|map(select($x.files[.]!=$y.files[.]))) end'; }
+valid_scope(){
+  local file=$1 id=$2 kind=${3:-changed}
+  jq -ne --slurpfile data "$file" --slurpfile plan "$GRAPH" --arg id "$id" --arg kind "$kind" '
+    ($plan[0].planned_nodes[]|select(.id==$id)) as $task |
+    (if $kind=="receipt" then $data[0].changed else $data[0] end) as $changed |
+    all($changed[]; . as $p | any($task.write_set[]; . as $s | $p==$s or ($s|endswith("/") and ($p|startswith($s)))))'
+}
+# The contract's normalized A/E/R is compared with no controller modification to worker internals.
+compare_return(){
+  local ret=$1 id=$2
+  [[ -f "$ret" ]] || fail RETURN "missing worker return: $ret"
+  jq -e -L "$HERE/lib" --slurpfile plan "$GRAPH" --arg id "$id" '
+    include "contract"; ($plan[0].planned_nodes[]|select(.id==$id)) as $task | valid_return($task)' "$ret" >/dev/null || fail RETURN 'delegated and implemented A/E/R or output contracts differ'
+}
+verify_done(){
+  local id=$1 s r ret rh
+  s=$(statefile "$id"); r=$(receiptfile "$id"); ret=$(returnfile "$id")
+  [[ -f "$s" && -f "$r" && -f "$ret" ]] || fail EVIDENCE "missing artifacts: $id"
+  jq -e '.status=="done"' "$s" >/dev/null || fail GATE "predecessor $id not done"
+  rh=$(hash "$r"); [[ $rh == "$(jq -r .receipt_sha256 "$s")" ]] || fail INTEGRITY "receipt mismatch: $id"
+  local expected; expected=$(jq -r .return_sha256 "$r"); [[ $expected == "$(hash "$ret")" ]] || fail INTEGRITY "return altered: $id"
+  local task; task=$(jq -ce --arg id "$id" '.planned_nodes[]|select(.id==$id)' "$GRAPH"); compare_return "$ret" "$id"
+  jq -e --arg id "$id" --arg owner "$(jq -r .owner <<<"$task")" --slurpfile state "$s" '
+    .schema_version==3 and .node_id==$id and .owner==$owner and .status=="done" and
+    .status==$state[0].status and .start_order==$state[0].start_order and
+    .finish_order==$state[0].finish_order and .worktree==$state[0].worktree and
+    .started_utc==$state[0].started_utc' "$r" >/dev/null || fail EVIDENCE "receipt/state identity mismatch: $id"
+  local logsha logp; logsha=$(jq -r '.check.log_sha256 // empty' "$r"); logp=$(logfile "$id")
+  if [[ -n $logsha ]]; then [[ -f $logp && $logsha == "$(hash "$logp")" ]] || fail INTEGRITY "log altered: $id"; fi
+  jq -e '.errors|length==0' "$r" >/dev/null || fail EVIDENCE "errors reported: $id"
+}
+ready(){
+  read_node
+  [[ ! -e $(statefile "$NODE") ]] || fail LIFECYCLE "$NODE already started (retry requires new graph)"
+  local dep; while IFS= read -r dep; do [[ -n "$dep" ]] || continue; verify_done "$dep"; done < <(jq -r '.depends_on[]' <<<"$TASK")
+}
+prompt_packet(){
+  ready
+  local received from output ret
+  received=$(mktemp)
+  while IFS=$'\t' read -r from output; do
+    [[ -n "$from" ]] || continue
+    ret=$(returnfile "$from")
+    jq -en --arg from "$from" --arg output "$output" --slurpfile predecessor "$ret" '
+      ($predecessor[0].outputs[$output]) as $value |
+      if ($value|type=="string" and length>0) then
+        {from:$from,output:$output,value:$value}
+      else error("required predecessor output missing") end' >>"$received" || fail INPUT "missing $from.$output"
+  done < <(jq -r '.requires[]|[.from,.output]|@tsv' <<<"$TASK")
+  jq -n --arg id "$NODE" --slurpfile plan "$GRAPH" --slurpfile received "$received" '
+    ($plan[0].planned_nodes[]|select(.id==$id)) as $t |
+    {node_id:$t.id,task:$t.task,domain:$t.domain,owner:$t.owner,mode:$t.mode,
+     requires:$t.requires,received:$received,produces:$t.produces,delegated:$t.delegation}' | jq -S .
+  rm -f "$received"
+}
+# Persist state under graph lock; file snapshots are outside this critical section.
+start_node(){
+  local mode=$1 lease s k before order
+  checkroot; read_node
+  case "$mode" in WRITE) [[ $(jq -r .mode <<<"$TASK") == WRITE ]] || fail MODE 'begin requires WRITE node';;
+    EXEC) [[ $(jq -r .mode <<<"$TASK") != WRITE ]] || fail MODE 'run requires READ/RUN node';; esac
+  ready
+  lease=$(leasefile "$ROOT"); s=$(statefile "$NODE")
+  mkdir -p "$(dirname -- "$lease")"
+  lock
+  [[ ! -e "$s" ]] || { unlock; fail LIFECYCLE 'node already started'; }
+  # Recheck predecessor status after the readiness preflight.
+  local dep; while IFS= read -r dep; do [[ -z $dep || $(jq -r .status "$(statefile "$dep")") == done ]] || { unlock; fail GATE "predecessor not done: $dep"; }; done < <(jq -r '.depends_on[]' <<<"$TASK")
+  (set -o noclobber; printf '%s:%s\n' "$GRAPH" "$NODE" >"$lease") 2>/dev/null || { unlock; fail LEASE 'worktree already leased by another node or graph; inspect and abort the recorded owner before retrying'; }
+  order=$(seq)
+  jq -cn --arg id "$NODE" --arg root "$ROOT" --argjson order "$order" --arg time "$(date -u +%FT%TZ)" '{id:$id,status:"starting",worktree:$root,start_order:$order,started_utc:$time}' | atomic_file "$s"
+  unlock
+  # A worker is not spawned until begin succeeds and reports the boundary packet.
+  if ! snapshot "$ROOT" | atomic_file "$(manifestfile "$NODE")"; then fail GIT 'cannot snapshot before task; abort the node'; fi
+  lock
+  jq -c '.status="running"' "$s" | atomic_file "$s"
+  unlock
+}
+complete_node(){
+  local mode=$1 rfile=$2 note=${3:-} before after changed ok='' error_kind='' s r ret ls endorder startorder
+  s=$(statefile "$NODE"); r=$(receiptfile "$NODE"); ret=$(returnfile "$NODE"); ls=$(leasefile "$ROOT")
+  [[ -f "$s" ]] || fail LIFECYCLE 'node not started'
+  [[ $(jq -r .status "$s") == running ]] || fail LIFECYCLE 'node not running'
+  [[ $(jq -r .worktree "$s") == "$ROOT" && $(cat "$ls" 2>/dev/null || :) == "$GRAPH:$NODE" ]] || fail LEASE 'wrong worktree or lease owner'
+  read_node
+  compare_return "$rfile" "$NODE"
+  before=$(manifestfile "$NODE"); after=$(mktemp); changed=$(mktemp)
+  snapshot "$ROOT" >"$after" || { rm -f "$after" "$changed"; fail GIT 'snapshot failed'; }
+  changes "$before" "$after" >"$changed" || { rm -f "$after" "$changed"; fail GIT 'HEAD or root changed'; }
+  if [[ $mode == WRITE ]]; then
+    [[ $(jq 'length' "$changed") -gt 0 ]] || error_kind='no_change'
+    valid_scope "$changed" "$NODE" >/dev/null || error_kind='out_of_scope'
+  else [[ $(jq 'length' "$changed") == 0 ]] || error_kind='read_mutation'; fi
+  if [[ $mode != WRITE ]]; then
+    [[ -n "$note" || $(jq -r '.gate' <<<"$TASK") == none ]] || error_kind='missing_review_note'
+  fi
+  local checked='null' logfile_path logsha
+  if [[ $mode != WRITE ]]; then
+    logfile_path=$(logfile "$NODE"); [[ -f "$logfile_path" ]] || fail EVIDENCE 'command log missing'
+    logsha=$(hash "$logfile_path");
+    checked=$(jq -cn --argjson argv "$RUN_ARGV" --argjson code "$RUN_EXIT" --arg log "${logfile_path##*/}" --arg sha "$logsha" '{argv:$argv,exit_code:$code,log:$log,log_sha256:$sha}')
+    [[ $RUN_EXIT -eq 0 ]] || error_kind='command_failed'
+  fi
+  # Canonicalize the worker return before deriving its receipt hash.
+  canonical "$rfile" | atomic_file "$ret"
+  # Even failed operations produce receipts; they cannot be mistaken for accepted work.
+  local status=done; [[ -z "$error_kind" ]] || status=failed
+  local errors='[]'; [[ -z "$error_kind" ]] || errors=$(jq -cn --arg e "$error_kind" '[{code:$e,message:$e}]')
+  lock
+  [[ $(jq -r .status "$s") == running ]] || { unlock; fail LIFECYCLE 'concurrent lifecycle transition'; }
+  endorder=$(seq); startorder=$(jq -r .start_order "$s")
+  jq -cn --arg id "$NODE" --arg owner "$(jq -r .owner <<<"$TASK")" --arg root "$ROOT" \
+    --arg status "$status" --slurpfile before "$before" --slurpfile after "$after" \
+    --slurpfile changed "$changed" --argjson errors "$errors" --argjson check "$checked" \
+    --argjson start "$startorder" --argjson finish "$endorder" \
+    --arg started "$(jq -r .started_utc "$s")" --arg finished "$(date -u +%FT%TZ)" \
+    --arg rethash "$(hash "$ret")" --arg note "$note" \
+    '{schema_version:3,node_id:$id,owner:$owner,worktree:$root,status:$status,before:$before[0],after:$after[0],changed:$changed[0],errors:$errors,start_order:$start,finish_order:$finish,started_utc:$started,finished_utc:$finished,check:$check,return_sha256:$rethash,review_note:$note}' | atomic_file "$r"
+  jq -c --arg rh "$(hash "$r")" --arg status "$status" --argjson ord "$endorder" --argjson errs "$errors" '.status=$status | .finish_order=$ord | .errors=$errs | .receipt_sha256=$rh' "$s" | atomic_file "$s"
+  rm -f "$ls"; unlock
+  rm -f "$after" "$changed"
+  [[ "$status" == done ]] || fail EXECUTION "$NODE failed: $error_kind"
+  echo "RECORDED: $NODE"
+}
+# Read-only capability discovery for the AI agent. Optional tools never change A/E/R.
+# Do not interpret Linux shadow-utils `sg` as the ast-grep binary.
+find_tool(){ command -v "$1" >/dev/null 2>&1 && printf '%s' "$1" || :; }
+tool_capabilities(){
+  local ast fd_bin gh_bin yq_bin sg_version yq_version yq_variant
+  ast=$(find_tool ast-grep)
+  if [[ -z $ast ]] && command -v sg >/dev/null 2>&1; then
+    sg_version=$(sg --version 2>&1 || :)
+    [[ $sg_version == *ast-grep* || $sg_version == *ast_grep* ]] && ast=sg
+  fi
+  fd_bin=$(find_tool fd)
+  [[ -n $fd_bin ]] || fd_bin=$(find_tool fdfind)
+  gh_bin=$(find_tool gh)
+  yq_bin=$(find_tool yq)
+  yq_variant='none'
+  if [[ -n $yq_bin ]]; then
+    yq_version=$(yq --version 2>&1 || :)
+    case "$yq_version" in
+      *github.com/mikefarah/yq*|*mikefarah/yq*) yq_variant='mikefarah';;
+      *) if [[ $yq_version =~ ^yq[[:space:]]+[0-9]+([.][0-9]+)*([[:space:]]|$) ]]; then
+           yq_variant='kislyuk'
+         else
+           yq_variant='unknown'
+         fi;;
+    esac
+  fi
+  jq -n --arg ast "$ast" --arg fd "$fd_bin" --arg gh "$gh_bin" \
+    --arg yq "$yq_bin" --arg yq_variant "$yq_variant" '
+    def capability($command): {available: ($command != ""), command: (if $command == "" then null else $command end)};
+    {required: {jq: capability("jq")},
+     optional: {ast_grep: capability($ast), fd: capability($fd), gh: capability($gh),
+       yq: (capability($yq) + {variant: $yq_variant})}}'
+}
+# Parses flags common to each verb; command argv after -- is preserved exactly.
+COMMAND=${1:-}; [[ -n "$COMMAND" ]] || fail USAGE 'factory <tools|init|prompt|ready|compare|begin|end|run|validate|status|abort|log|proof|version>'
+shift || :
+GRAPH='.work/graphs/task.json'; ROOT="$PWD"; PLAN=''; NODE=''; RETURN=''; REVIEW=''; REASON=''; TIMEOUT='600'; SUITE=''; ARGV=()
+if [[ $COMMAND == log && $# -gt 0 ]]; then SUITE=$1; shift; fi
+while (($#)); do
+  case "$1" in
+    --graph) GRAPH=$2; shift 2;; --root) ROOT=$2; shift 2;; --plan) PLAN=$2; shift 2;;
+    --node) NODE=$2; shift 2;; --return) RETURN=$2; shift 2;;
+    --review-note) REVIEW=$2; shift 2;; --reason) REASON=$2; shift 2;;
+    --timeout) TIMEOUT=$2; shift 2;; --) shift; ARGV=("$@"); break;;
+    *) fail USAGE "unknown flag $1";;
+  esac
+done
+setup_paths
+case "$COMMAND" in
+  version) echo 'factory shell/3 (Bash+jq)';;
+  tools) tool_capabilities;;
+  init)
+    [[ -n "$PLAN" && -f "$PLAN" ]] || fail USAGE 'init requires --plan file'
+    ROOT=$(repo "$ROOT"); check_ignored
+    contract 'valid_plan' "$PLAN" >/dev/null || fail CONTRACT 'invalid schema-3 A/E/R task graph'
+    [[ $(jq -r '.plan_sha256 // ""' "$PLAN") == '' && $(jq -r '.repository_id // ""' "$PLAN") == '' ]] || fail CONTRACT 'init expects an uninitialized plan'
+    mkdir -p "$EV"
+    lock
+    [[ ! -e "$GRAPH" ]] || { unlock; fail LIFECYCLE 'graph already exists'; }
+    id=$(repoid "$ROOT"); digest=$(jq -cS --arg id "$id" '{schema_version,planned_nodes,repository_id:$id}' "$PLAN" | hash_text)
+    jq -cS --arg id "$id" --arg sha "$digest" '. + {repository_id:$id,plan_sha256:$sha}' "$PLAN" | atomic_file "$GRAPH"
+    printf '0\n' | atomic_file "$EV/sequence"
+    unlock; echo "INITIALIZED: $GRAPH";;
+  ready|prompt|begin|end|run|compare|abort)
+    [[ $NODE =~ ^N[1-9][0-9]*$ ]] || fail USAGE 'valid --node N... required'
+    checkgraph
+    case "$COMMAND" in
+      ready) ready; echo "READY: $NODE";;
+      prompt) prompt_packet;;
+      compare) read_node; compare_return "$RETURN" "$NODE"; echo "MATCH: $NODE";;
+      begin) start_node WRITE; echo "BEGUN: $NODE";;
+      end) checkroot; RUN_ARGV='[]'; RUN_EXIT=0; complete_node WRITE "$RETURN";;
+      run)
+        [[ -n "$RETURN" && ${#ARGV[@]} -gt 0 ]] || fail USAGE 'run needs --return FILE -- COMMAND [ARGS]'
+        checkroot; read_node
+        RUN_ARGV=$(printf '%s\0' "${ARGV[@]}" | jq -Rs 'split("\u0000")[:-1]')
+        jq -e --argjson argv "$RUN_ARGV" 'any(.delegation.R.verification[]; .==$argv)' <<<"$TASK" >/dev/null || fail CONTRACT 'run command not declared in R.verification'
+        [[ "$TIMEOUT" =~ ^[1-9][0-9]*$ ]] || fail USAGE 'timeout must be positive integer seconds'
+        command -v timeout >/dev/null || fail DEPENDENCY 'GNU timeout required for command execution'
+        start_node EXEC
+        logpath=$(logfile "$NODE")
+        set +e
+        (cd "$ROOT" && timeout --kill-after=2s "${TIMEOUT}s" "${ARGV[@]}") >"$logpath" 2>&1
+        RUN_EXIT=$?
+        set -e
+        complete_node EXEC "$RETURN" "$REVIEW";;
+      abort)
+        checkroot; [[ -n "$REASON" ]] || fail USAGE 'abort requires --reason';
+        s=$(statefile "$NODE"); [[ -f "$s" ]] || fail LIFECYCLE 'node not started'
+        [[ $(jq -r .status "$s") != done ]] || fail LIFECYCLE 'cannot abort completed node'
+        [[ $(jq -r .status "$s") != failed ]] || fail LIFECYCLE 'node already failed'
+        lock; e=$(seq)
+        jq -c --arg r "$REASON" --argjson n "$e" '.status="failed"|.finish_order=$n|.errors=[{code:"aborted",message:$r}]' "$s" | atomic_file "$s"
+        lease=$(leasefile "$(jq -r .worktree "$s")"); [[ $(cat "$lease" 2>/dev/null || :) == "$GRAPH:$NODE" ]] && rm -f "$lease"
+        unlock; echo "ABORTED: $NODE";;
+    esac;;
+  validate)
+    checkgraph
+    local_bad=0
+    while IFS= read -r id; do
+      verify_done "$id"
+      s=$(statefile "$id"); r=$(receiptfile "$id")
+      [[ $(jq -r .start_order "$r") -lt $(jq -r .finish_order "$r") ]] || fail ORDER "invalid event sequence for $id"
+      jq -e '(.before.files) as $x | (.after.files) as $y |
+        .changed == ([($x|keys_unsorted[]),($y|keys_unsorted[])]|unique|map(select($x[.]!=$y[.])))' "$r" >/dev/null || fail EVIDENCE "changed file list inconsistent: $id"
+      task=$(jq -ce --arg id "$id" '.planned_nodes[] | select(.id==$id)' "$GRAPH")
+      if [[ $(jq -r .mode <<<"$task") == WRITE ]]; then
+        valid_scope "$r" "$id" receipt >/dev/null || fail SCOPE "unauthorized changes $id"
+        [[ $(jq '.changed|length' "$r") -gt 0 ]] || fail SCOPE "empty WRITE changes: $id"
+      else
+        [[ $(jq '.changed|length' "$r") -eq 0 ]] || fail SCOPE "READ/RUN wrote files: $id"
+        jq -e '.check.exit_code==0' "$r" >/dev/null || fail EXECUTION "command failed: $id"
+      fi
+      while IFS= read -r dep; do
+        [[ -z $dep ]] && continue
+        [[ $(jq -r .finish_order "$(receiptfile "$dep")") -lt $(jq -r .start_order "$r") ]] || fail ORDER "dependency ordering $dep->$id";
+      done < <(jq -r '.depends_on[]' <<<"$task")
+    done < <(jq -r '.planned_nodes[].id' "$GRAPH")
+    echo 'GRAPH PASS: delegated A/E/R matches implemented A/E/R; local observation consistent';;
+  status)
+    checkgraph
+    states=$(mktemp)
+    while IFS= read -r id; do
+      if [[ -f $(statefile "$id") ]]; then
+        jq -c '{id,status,start_order,finish_order,errors}' "$(statefile "$id")" >>"$states"
+      else jq -cn --arg id "$id" '{id:$id,status:"pending"}' >>"$states"; fi
+    done < <(jq -r '.planned_nodes[].id' "$GRAPH")
+    jq -s . "$states"; rm -f "$states";;
+  log)
+    [[ -n "$SUITE" && $SUITE =~ ^[A-Za-z0-9_-]+$ && ${#ARGV[@]} -gt 0 ]] || fail USAGE 'log SUITE -- COMMAND ...'
+    mkdir -p "$ROOT/.work/test-logs"
+    target="$ROOT/.work/test-logs/$SUITE-$(date -u +%Y%m%d%H%M%S)-$$.log"
+    set +e; "${ARGV[@]}" >"$target" 2>&1; code=$?; set -e
+    echo "LOG: $target EXIT: $code"; tail -n 20 "$target"; exit "$code";;
+  proof)
+    root=$(repo "$ROOT"); pin="$root/proofs/BEND_VERSION"
+    [[ -f "$pin" ]] || fail PROOF 'missing Bend version pin'
+    expected=$(grep -v '^[[:space:]]*#' "$pin" | sed '/^[[:space:]]*$/d' | head -1); [[ -n $expected && $expected != unpinned ]] || fail PROOF 'Bend version is unpinned'
+    command -v bend >/dev/null || fail PROOF 'bend unavailable'
+    actual=$(bend --version 2>&1); [[ "$actual" == "$expected" ]] || fail PROOF "version mismatch: expected $expected got $actual"
+    # Validate the product contract set before running anything. The smoke file
+    # confirms that Bend works, but cannot satisfy a product proof obligation.
+    law_count=0; proof_count=0
+    while IFS= read -r -d '' f; do
+      [[ "${f%/*}" == "$root/proofs/smoke" ]] && continue
+      law_count=$((law_count+1))
+      grep -Eq '^[[:space:]]*law[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[[:space:]]*:' "$f" || fail PROOF "no declared product law in $f"
+      [[ -f "${f%/*}/PROOF.bend" ]] || fail PROOF "no PROOF.bend for $f"
+    done < <(find "$root/proofs" -mindepth 2 -maxdepth 2 -name LAWS.bend -type f -print0)
+    while IFS= read -r -d '' f; do
+      [[ "${f%/*}" == "$root/proofs/smoke" ]] && continue
+      proof_count=$((proof_count+1))
+      [[ -f "${f%/*}/LAWS.bend" ]] || fail PROOF "no LAWS.bend for $f"
+    done < <(find "$root/proofs" -mindepth 2 -maxdepth 2 -name PROOF.bend -type f -print0)
+    [[ $law_count -gt 0 && $proof_count -eq $law_count ]] || fail PROOF 'no application law/proof pairs; smoke is not product proof'
+    [[ -f "$root/proofs/smoke/PROOF.bend" ]] && bend "$root/proofs/smoke/PROOF.bend" --verdict
+    while IFS= read -r -d '' f; do
+      [[ "${f%/*}" == "$root/proofs/smoke" ]] && continue
+      bend "$f" --verdict
+    done < <(find "$root/proofs" -mindepth 2 -maxdepth 2 -name PROOF.bend -type f -print0)
+    echo "PRODUCT PROOFS PASSED: $proof_count law/proof pair(s)";;
+  *) fail USAGE "unknown command $COMMAND";;
+esac

@@ -1,0 +1,10 @@
+# Volatile evidence, checkpoints, and test logs
+.work/
+# Environment and dependency artifacts
+.env
+.env.*
+!.env.example
+node_modules/
+__pycache__/
+.pytest_cache/
+.DS_Store

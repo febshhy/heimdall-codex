@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Operator CLI. Saved plans and recovery are implemented in heimdall-lifecycle.py.
+set -euo pipefail
+HERE=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+if [[ ${1:-} == --help || ${1:-} == -h || $# -eq 0 ]]; then
+  cat <<'HELP'
+Usage: bash scripts/heimdall COMMAND --project PATH [options]
+Commands:
+  start   Auto-detect project; create a saved reviewable plan (default)
+  new     Plan a new or empty Git project
+  adopt   Plan integration into an existing Git repository
+  discover  Print the Codex architecture investigation contract
+  doctor  Show tool availability and security limitation
+  status  Show incomplete installation/recovery state
+  recover [--revert]  Inspect or explicitly revert an incomplete install
+Options:
+  --integrate-agents  Approve bounded integration into existing AGENTS instructions
+  --allow-dirty       Explicitly approve initial dirty worktree state
+  --with-bend2        Include the Bend 2 law/proof workflow (requires reviewed Bend)
+  --apply             Apply a previously saved, still-current plan
+Default preview saves its plan OUTSIDE the project under ~/.local/state/heimdall.
+--apply refuses missing, stale, or option-mismatched plans. It never launches Codex.
+Credentials remain unsafe without a separate OS/container or broker boundary.
+HELP
+  exit 0
+fi
+command -v python3 >/dev/null || { printf 'Heimdall: Python 3 required for lifecycle management\n' >&2; exit 2; }
+exec python3 "$HERE/heimdall-lifecycle.py" "$@"

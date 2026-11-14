@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 794" role="img" aria-labelledby="title desc">
+<title id="title">Heimdall engineering workflow for narrow screens</title>
+<desc id="desc">A guarded hall and stone viaduct join two solid cliffs. The workflow appears separately below, with four downward stages: Intent, Source paths, Focused change, Evidence. Evidence reports both failures and unknowns.</desc>
+
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1D3039"/><stop offset=".52" stop-color="#677B7C"/><stop offset="1" stop-color="#DED9C9"/></linearGradient>
+  <radialGradient id="sun"><stop stop-color="#F9E0AB" stop-opacity=".9"/><stop offset=".38" stop-color="#E8B973" stop-opacity=".28"/><stop offset="1" stop-color="#E8B973" stop-opacity="0"/></radialGradient>
+  <linearGradient id="mtn" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#879492"/><stop offset="1" stop-color="#485B61"/></linearGradient>
+  <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#B8AEA0"/><stop offset=".54" stop-color="#797F7D"/><stop offset="1" stop-color="#36464B"/></linearGradient>
+  <linearGradient id="masonry" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#C1B6A6"/><stop offset=".43" stop-color="#76807E"/><stop offset="1" stop-color="#3D5158"/></linearGradient>
+  <linearGradient id="cliff" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#61706B"/><stop offset=".55" stop-color="#384C4E"/><stop offset="1" stop-color="#26353B"/></linearGradient>
+  <linearGradient id="roof" x1="0" y1="0" x2=".5" y2="1"><stop stop-color="#49585E"/><stop offset="1" stop-color="#1D2D34"/></linearGradient>
+  <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F0DAA4"/><stop offset=".45" stop-color="#C09856"/><stop offset="1" stop-color="#805F39"/></linearGradient>
+  <linearGradient id="strip" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2D3B41"/><stop offset="1" stop-color="#1A272D"/></linearGradient>
+  <filter id="fog"><feGaussianBlur stdDeviation="11"/></filter>
+  <pattern id="stoneLines" width="57" height="24" patternUnits="userSpaceOnUse"><path d="M0 0H57M0 24H57M22 0V24" fill="none" stroke="#283C43" stroke-opacity=".27" stroke-width="1"/></pattern>
+  <pattern id="hatch" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(34)"><path d="M0 0V16" stroke="#F4EDE0" stroke-opacity=".065" stroke-width="2"/></pattern>
+
+</defs>
+
+<rect width="560" height="794" fill="url(#strip)"/>
+<svg x="0" y="0" width="560" height="182" viewBox="0 0 1200 370" preserveAspectRatio="xMidYMid slice">
+<g id="scene">
+  <rect width="1200" height="370" fill="url(#sky)"/>
+  <ellipse cx="1054" cy="65" rx="240" ry="160" fill="url(#sun)"/>
+
+  <path d="M0 166L64 136L133 161L198 107L252 144L309 98L377 151L451 83L526 145L602 112L690 165L770 101L830 136L898 76L955 145L1040 96L1110 135L1200 76V370H0Z" fill="#758A8C" opacity=".58"/>
+  <path d="M0 188L74 159L164 177L266 124L318 158L411 132L491 174L560 142L647 163L762 119L810 176L880 137L981 161L1042 124L1135 167L1200 138V370H0Z" fill="url(#mtn)" opacity=".91"/>
+  <path d="M0 219L105 197L232 217L299 186L422 232L528 191L661 228L772 183L918 207L1057 188L1200 214V370H0Z" fill="#324D53" opacity=".85"/>
+  <path d="M0 266Q254 213 438 260T860 265T1200 229V370H0Z" fill="#B4BDB7" opacity=".22" filter="url(#fog)"/>
+
+  <path d="M228 290Q374 281 512 295T802 285T1040 294" stroke="#B8CAC2" stroke-width="8" opacity=".6" fill="none"/>
+  <path d="M260 302Q442 288 626 299T975 291" stroke="#E6DED0" stroke-width="1.5" opacity=".42" fill="none"/>
+
+  <path d="M0 211L64 205L126 193L205 194L278 171L293 305H0Z" fill="url(#cliff)" stroke="#263C41" stroke-width="2"/>
+  <path d="M969 167L1020 150L1093 162L1162 140L1200 152V370H962Z" fill="url(#cliff)" stroke="#263C41" stroke-width="2"/>
+  <path d="M21 230L93 209L124 239L177 221L213 256L270 241M30 267L103 249L139 277L190 257L256 292" stroke="#A5AA94" stroke-width="2" fill="none" opacity=".27"/>
+  <path d="M980 211L1033 194L1076 227L1152 201M994 270L1050 251L1087 267L1173 235" stroke="#B1B09B" stroke-width="2" fill="none" opacity=".25"/>
+
+  <path d="M420 294L440 267L456 284L474 268L490 306L471 305L453 300Z" fill="#34474A" stroke="#61736D" stroke-width="2"/>
+  <path d="M575 297L599 268L616 278L637 270L659 306Z" fill="#34474A" stroke="#61736D" stroke-width="2"/>
+  <path d="M703 295L728 273L752 280L776 269L802 301Z" fill="#34474A" stroke="#61736D" stroke-width="2"/>
+  <path d="M839 299L859 279L879 281L897 268L924 300Z" fill="#34474A" stroke="#61736D" stroke-width="2"/>
+
+  <path id="viaduct-face" d="M258 159L976 138L976 296L258 326Z
+    M296 361V241C296 187 415 187 415 241V361Z
+    M447 361V235C447 186 562 186 562 235V361Z
+    M594 361V228C594 182 702 182 702 228V361Z
+    M731 361V221C731 179 829 179 829 221V361Z
+    M857 361V215C857 177 945 177 945 215V361Z" fill-rule="evenodd" fill="url(#stone)" stroke="#35454B" stroke-width="2.5"/>
+  <path d="M258 159L976 138L976 296L258 326Z
+    M296 361V241C296 187 415 187 415 241V361Z
+    M447 361V235C447 186 562 186 562 235V361Z
+    M594 361V228C594 182 702 182 702 228V361Z
+    M731 361V221C731 179 829 179 829 221V361Z
+    M857 361V215C857 177 945 177 945 215V361Z" fill-rule="evenodd" fill="url(#stoneLines)" opacity=".65"/>
+  <path d="M258 159L976 138L976 296L258 326Z
+    M296 361V241C296 187 415 187 415 241V361Z
+    M447 361V235C447 186 562 186 562 235V361Z
+    M594 361V228C594 182 702 182 702 228V361Z
+    M731 361V221C731 179 829 179 829 221V361Z
+    M857 361V215C857 177 945 177 945 215V361Z" fill-rule="evenodd" fill="url(#hatch)"/>
+  <path d="M258 159L976 138L976 164L258 184Z" fill="url(#masonry)" stroke="#37474B" stroke-width="2"/>
+  <path d="M260 159L973 138" stroke="#F4E4C7" stroke-opacity=".78" stroke-width="2"/>
+  <path d="M258 186L975 165" stroke="#344750" stroke-width="3"/>
+
+  <path d="M260 143L975 121L975 138L260 159Z" fill="#5B6664" stroke="#35474D" stroke-width="2"/>
+  <path d="M261 146L972 124" stroke="#D7C3A3" stroke-width="2"/>
+  <path d="M259 138V159M340 136V157M423 134V155M504 132V153M586 129V150M666 127V148M746 125V146M826 122V143M906 120V141M975 119V139" stroke="#37474B" stroke-width="4"/>
+
+  <path d="M415 287L446 285L453 347L417 350Z M562 279L593 277L597 346L561 349Z M702 271L730 270L734 343L701 346Z M829 263L857 261L860 336L827 341Z" fill="url(#masonry)" stroke="#35454B" stroke-width="2"/>
+  <path d="M410 349L426 335L448 337L464 351L471 366L404 366Z M556 348L574 337L587 342L604 337L615 367H549Z M695 344L711 331L731 341L740 365H691Z M820 340L838 332L859 342L869 365H813Z" fill="url(#cliff)" stroke="#334A4F" stroke-width="2"/>
+  <path d="M297 345Q414 359 527 348T765 350T969 339" fill="none" stroke="#D7DBCC" stroke-width="4" stroke-opacity=".4"/>
+  <path d="M295 359Q430 347 535 361T759 362T955 349" fill="none" stroke="#C0CAC0" stroke-width="1.5" stroke-opacity=".35"/>
+
+  <path d="M296 241C296 187 415 187 415 241M447 235C447 186 562 186 562 235M594 228C594 182 702 182 702 228M731 221C731 179 829 179 829 221M857 215C857 177 945 177 945 215" fill="none" stroke="#DACFC0" stroke-width="4" opacity=".77"/>
+  <path d="M258 326L280 316M420 316L445 312M560 309L590 302M706 304L726 299M826 301L851 295M948 299L976 296" stroke="#273B42" stroke-width="3"/>
+
+  <path d="M80 153L80 105L208 99L208 186L80 205Z" fill="url(#stone)" stroke="#2E4046" stroke-width="3"/>
+  <path d="M68 108L137 51L230 93L208 108L138 73L81 121Z" fill="url(#roof)" stroke="#1E3038" stroke-width="3"/>
+  <path d="M138 72L139 178" stroke="#D0B98D" stroke-width="3" opacity=".7"/>
+  <path d="M103 182V143Q103 125 127 125Q150 125 150 143V193Z" fill="#23353A" stroke="#D1C2A5" stroke-width="3"/>
+  <path d="M113 166Q135 157 143 151" fill="none" stroke="url(#brass)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M142 146l15 -6l0 17l-15 -6Z" fill="url(#brass)" stroke="#7A5B39" stroke-width="1.5"/>
+  <rect x="175" y="129" width="14" height="26" fill="#233D41" stroke="#D4BB8A" stroke-width="2"/>
+  <path d="M175 140H189" stroke="#BD9B69" stroke-width="1.5"/>
+  <path d="M72 208L219 188L263 190L263 206L78 229Z" fill="#626F6B" stroke="#34474C" stroke-width="2"/>
+
+  <path d="M238 179V151M230 151H246M234 151V133H242V151" stroke="#35464C" stroke-width="4" fill="none"/>
+  <path d="M235 145Q239 136 238 128Q245 136 244 145Z" fill="#D5AD67"/>
+
+  <path d="M973 145L1048 139L1095 155L1095 178L976 168Z" fill="#69736E" stroke="#33434A" stroke-width="3"/>
+  <path d="M1010 136L1010 94L1081 89L1081 151L1010 152Z" fill="url(#stone)" stroke="#2E4046" stroke-width="3"/>
+  <path d="M997 100L1044 63L1095 93L1082 103L1044 80L1012 111Z" fill="url(#roof)" stroke="#28393E" stroke-width="3"/>
+  <path d="M1033 151V117Q1033 108 1046 108Q1058 108 1058 117V148" fill="#2D4047" stroke="#C7B9A5" stroke-width="2"/>
+  <path d="M1015 154L1082 150" stroke="#D9C6A5" opacity=".7" stroke-width="2"/>
+
+  <path d="M175 135H188M185 133V152" stroke="#F1CB83" stroke-width="1.5"/>
+  <path d="M1071 117V134" stroke="#B99459" stroke-width="2"/>
+  <path d="M74 220L118 213L151 220M1020 169L1054 170L1090 159" fill="none" stroke="#E3D4B7" opacity=".3" stroke-width="2"/>
+<path d="M300.7 218.9l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M316.0 204.8l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M337.9 197.1l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M362.6 195.8l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M386.2 200.7l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M404.8 212.1l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M451.6 214.5l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M466.3 201.7l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M487.5 194.7l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M511.4 193.5l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M534.2 198.0l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M552.2 208.3l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M598.3 208.4l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M612.1 196.4l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M632.0 189.9l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M654.5 188.7l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M675.9 193.0l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M692.8 202.6l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M734.9 202.7l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M747.4 191.8l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M765.5 185.8l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M785.9 184.7l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M805.3 188.6l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M820.6 197.4l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M860.5 198.0l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M871.8 188.1l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M888.0 182.6l2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M906.3 181.7l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M923.7 185.2l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/><path d="M937.5 193.2l-2.5 -9" stroke="#E2D2B6" stroke-opacity=".48" stroke-width="1.5"/></g>
+</svg>
+<path d="M0 182H560" stroke="#D8B178" stroke-width="3"/>
+<text x="36" y="224" fill="#E9D8B7" font-family="Georgia,serif" font-size="20" letter-spacing="1.4">THE GUARDED CROSSING</text>
+<path d="M77 267V690" stroke="#A98E68" stroke-width="3" stroke-dasharray="7 9" opacity=".7"/>
+<circle cx="77" cy="295" r="32" fill="#35454A" stroke="#C7A16B" stroke-width="2"/>
+<text x="77" y="305" text-anchor="middle" font-family="Georgia,serif" font-size="29" fill="#EDCF9F">01</text>
+<text x="136" y="292" font-family="system-ui,Segoe UI,sans-serif" font-weight="600" font-size="31" fill="#F2EDE0">Intent</text>
+<text x="136" y="327" font-family="system-ui,Segoe UI,sans-serif" font-size="25" fill="#CDD3CE">Define the requested change</text>
+<circle cx="77" cy="424" r="32" fill="#35454A" stroke="#C7A16B" stroke-width="2"/>
+<text x="77" y="434" text-anchor="middle" font-family="Georgia,serif" font-size="29" fill="#EDCF9F">02</text>
+<text x="136" y="421" font-family="system-ui,Segoe UI,sans-serif" font-weight="600" font-size="31" fill="#F2EDE0">Source paths</text>
+<text x="136" y="456" font-family="system-ui,Segoe UI,sans-serif" font-size="25" fill="#CDD3CE">Trace code and contracts</text>
+<circle cx="77" cy="553" r="32" fill="#35454A" stroke="#C7A16B" stroke-width="2"/>
+<text x="77" y="563" text-anchor="middle" font-family="Georgia,serif" font-size="29" fill="#EDCF9F">03</text>
+<text x="136" y="550" font-family="system-ui,Segoe UI,sans-serif" font-weight="600" font-size="31" fill="#F2EDE0">Focused change</text>
+<text x="136" y="585" font-family="system-ui,Segoe UI,sans-serif" font-size="25" fill="#CDD3CE">Modify the affected boundary</text>
+<circle cx="77" cy="682" r="32" fill="#35454A" stroke="#C7A16B" stroke-width="2"/>
+<text x="77" y="692" text-anchor="middle" font-family="Georgia,serif" font-size="29" fill="#EDCF9F">04</text>
+<text x="136" y="679" font-family="system-ui,Segoe UI,sans-serif" font-weight="600" font-size="31" fill="#F2EDE0">Evidence</text>
+<text x="136" y="714" font-family="system-ui,Segoe UI,sans-serif" font-size="25" fill="#CDD3CE">Report checks and unknowns</text>
+<path d="M.75 .75H559.25V793.25H.75Z" fill="none" stroke="#87938E" stroke-width="1.5"/></svg>

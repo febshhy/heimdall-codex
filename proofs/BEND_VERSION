@@ -1,0 +1,4 @@
+# Set the next noncomment line to the EXACT output of `bend --version`
+# from the reviewed Bend 2 installation. This guards accidental version drift,
+# not a malicious executable. For trusted proof gates pin the binary in CI too.
+unpinned

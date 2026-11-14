@@ -1,0 +1,63 @@
+{
+  "schema_version": 3,
+  "planned_nodes": [
+    {
+      "id": "N1",
+      "domain": "application",
+      "owner": "agent-writer",
+      "mode": "WRITE",
+      "task": "Implement the planned feature in src/feature.txt",
+      "depends_on": [],
+      "requires": [],
+      "produces": ["change_set"],
+      "write_set": ["src/"],
+      "verifies": [],
+      "gate": "none",
+      "delegation": {
+        "A": {
+          "nodes": [
+            {"id": "prepare", "domain": "application", "inputs": [], "outputs": ["feature_spec"]},
+            {"id": "implement", "domain": "application", "inputs": ["feature_spec"], "outputs": ["implementation"]}
+          ],
+          "edges": [{"from": "prepare", "to": "implement", "data": "feature_spec"}]
+        },
+        "E": [
+          {"at": "prepare", "kind": "wrong_context", "mitigation": "Stop if the feature requirements are absent"},
+          {"at": "implement", "kind": "misinterpretation", "mitigation": "Compare returned graph and check project tests"}
+        ],
+        "R": {
+          "method": "software-design-thinking sections 1-14",
+          "verification": [["sh", "-c", "test -f src/feature.txt"]],
+          "why": "Provide the feature required by the task",
+          "inputs": ["approved feature requirements"]
+        }
+      }
+    },
+    {
+      "id": "N2",
+      "domain": "quality",
+      "owner": "agent-reviewer",
+      "mode": "RUN",
+      "task": "Independently verify feature implementation",
+      "depends_on": ["N1"],
+      "requires": [{"from": "N1", "output": "change_set"}],
+      "produces": ["review_result"],
+      "write_set": [],
+      "verifies": ["N1"],
+      "gate": "review",
+      "delegation": {
+        "A": {
+          "nodes": [{"id": "verify", "domain": "quality", "inputs": ["change_set"], "outputs": ["review_result"]}],
+          "edges": []
+        },
+        "E": [{"at": "verify", "kind": "missing_input", "mitigation": "Inspect the changed files and stop if predecessor output is missing"}],
+        "R": {
+          "method": "graph-protocol sections 5-10; testing skill",
+          "verification": [["sh", "-c", "test -f src/feature.txt"]],
+          "why": "Independently verify the delegated feature",
+          "inputs": ["N1.change_set"]
+        }
+      }
+    }
+  ]
+}

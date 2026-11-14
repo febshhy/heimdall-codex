@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Fetch a pinned Heimdall Git commit and preview or run its project installer.
+# NOTE: this script itself must be obtained from a trusted, reviewed source.
+set -euo pipefail
+umask 077
+fail(){ printf 'Heimdall bootstrap: %s\n' "$*" >&2; exit 2; }
+usage(){ cat <<'HELP'
+Usage: bash heimdall-bootstrap --repo HTTPS_GIT_URL --commit FULL_HASH --checkout EMPTY_DESTINATION
+       bash heimdall-bootstrap --repo HTTPS_GIT_URL --commit FULL_HASH --project EXISTING_PROJECT [--apply] [--integrate-agents]
+
+Checkout mode downloads and verifies a pinned source tree without running code.
+Project preview only verifies the Git commit and DOES NOT execute a remote installer.
+On --apply, executes install.sh from that verified commit after a dry-run.
+Review the pinned source or commit before --apply. No curl | bash, branch heads, or implicit latest.
+A Git commit proves identity relative to the supplied hash, not publisher trust.
+HELP
+}
+REPO=''; COMMIT=''; TARGET=''; CHECKOUT=''; APPLY=0; INTEGRATE=0
+while (($#)); do
+  case "$1" in
+    --repo) (($#>=2)) || fail 'missing repo'; REPO=$2; shift 2;;
+    --commit) (($#>=2)) || fail 'missing commit'; COMMIT=$2; shift 2;;
+    --project) (($#>=2)) || fail 'missing project'; TARGET=$2; shift 2;;
+    --checkout) (($#>=2)) || fail 'missing checkout'; CHECKOUT=$2; shift 2;;
+    --apply) APPLY=1; shift;;
+    --integrate-agents) INTEGRATE=1; shift;;
+    -h|--help) usage; exit 0;;
+    *) fail "unknown option: $1";;
+  esac
+done
+[[ $REPO =~ ^https://[a-zA-Z0-9._~:/?@%+=-]+$ ]] || fail 'repo must be a HTTPS Git URL without spaces, fragment, or embedded credentials'
+[[ $REPO != *'@'* ]] || fail 'URL userinfo is forbidden: configure Git credential helper outside the agent'
+[[ $COMMIT =~ ^([0-9a-fA-F]{40}|[0-9a-fA-F]{64})$ ]] || fail 'commit must be a full Git SHA-1 or SHA-256 hash'
+if [[ -n $CHECKOUT ]]; then
+  [[ $APPLY -eq 0 && -z $TARGET && $INTEGRATE -eq 0 ]] || fail '--checkout cannot be combined with project install flags'
+  [[ ! -e $CHECKOUT && ! -L $CHECKOUT && -d $(dirname -- "$CHECKOUT") ]] || fail 'checkout destination must not exist and parent must exist'
+else
+  [[ -n $TARGET && -d $TARGET && ! -L $TARGET ]] || fail 'project must be an existing local directory'
+fi
+[[ $EUID -ne 0 ]] || fail 'Do not run remote bootstrap as root'
+for tool in git bash mktemp sha256sum jq; do command -v "$tool" >/dev/null || fail "missing tool: $tool"; done
+TMP=$(mktemp -d)
+trap 'rm -rf -- "$TMP"' EXIT
+# Disable interactive prompts during deterministic clone; no submodules, no LFS smudge.
+GIT_TERMINAL_PROMPT=0 GIT_LFS_SKIP_SMUDGE=1 git -c core.hooksPath=/dev/null clone --no-checkout -- "$REPO" "$TMP/release" >/dev/null 2>&1 || fail 'clone failed; check URL/authentication'
+git -C "$TMP/release" cat-file -e "$COMMIT^{commit}" || fail 'requested commit is not in fetched history'
+GIT_LFS_SKIP_SMUDGE=1 git -C "$TMP/release" -c core.hooksPath=/dev/null checkout -q --detach "$COMMIT" || fail 'checkout failed'
+ACTUAL=$(git -C "$TMP/release" rev-parse HEAD)
+[[ ${ACTUAL,,} == ${COMMIT,,} ]] || fail 'checkout SHA does not match expected pinned commit'
+[[ -f "$TMP/release/install.sh" && ! -L "$TMP/release/install.sh" ]] || fail 'pinned release has no regular install.sh'
+printf 'Verified release Git commit: %s\n' "$ACTUAL"
+if [[ -n $CHECKOUT ]]; then
+  mv -- "$TMP/release" "$CHECKOUT"
+  printf 'Source checkout stored at: %s. Review its contents before running the installer.\n' "$CHECKOUT"
+elif ((APPLY)); then
+  args=(--project "$TARGET" --dry-run)
+  ((INTEGRATE)) && args+=(--integrate-agents)
+  printf 'Executing pinned installer dry-run before apply (remote code execution explicitly approved).\n'
+  bash "$TMP/release/install.sh" "${args[@]}"
+  args=(--project "$TARGET")
+  ((INTEGRATE)) && args+=(--integrate-agents)
+  printf 'Applying reviewed pinned release commit %s\n' "$ACTUAL"
+  bash "$TMP/release/install.sh" "${args[@]}"
+  bash "$TARGET/.heimdall/install.sh" --verify --project "$TARGET"
+else
+  printf 'PREVIEW ONLY. Remote installer was not executed. No project files changed.\n'
+  printf 'Use --checkout EMPTY_PATH to retain and review the exact source, or --apply to authorize execution.\n'
+fi
