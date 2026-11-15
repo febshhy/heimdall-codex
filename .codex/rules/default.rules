@@ -1,0 +1,126 @@
+# Local execution policy for commands Codex requests outside the sandbox.
+# These rules do not replace sandboxing or repository instructions.
+
+# Do not start a filesystem-wide traversal at the root directory.
+prefix_rule(
+    pattern = ["find", "/"],
+    decision = "forbidden",
+    justification = "Do not search from `/`; search the repository or a user-specified directory.",
+    match = [
+        "find /",
+        "find / -type f -name '*.log'",
+    ],
+    not_match = [
+        "find . -type f",
+        "find /tmp/project -type f",
+    ],
+)
+
+prefix_rule(
+    pattern = ["tree", "/"],
+    decision = "forbidden",
+    justification = "Do not recursively list the filesystem root; use a scoped directory.",
+    match = ["tree /", "tree / -L 2"],
+    not_match = ["tree .", "tree /tmp/project"],
+)
+
+prefix_rule(
+    pattern = ["ls", ["-R", "--recursive"], "/"],
+    decision = "forbidden",
+    justification = "Do not recursively list the filesystem root; use a scoped directory.",
+    match = ["ls -R /", "ls --recursive /"],
+    not_match = ["ls -R .", "ls -R /tmp/project"],
+)
+
+prefix_rule(
+    pattern = ["rg", "--files", "/"],
+    decision = "forbidden",
+    justification = "Do not enumerate files from `/`; search the repository or a user-specified directory.",
+    match = ["rg --files /"],
+    not_match = ["rg --files .", "rg --files /tmp/project"],
+)
+
+prefix_rule(
+    pattern = ["rg", "--files", "-uu", "/"],
+    decision = "forbidden",
+    justification = "Do not enumerate all files from `/`; search a scoped directory.",
+    match = ["rg --files -uu /"],
+    not_match = ["rg --files -uu ."],
+)
+
+prefix_rule(
+    pattern = ["grep", ["-R", "-r"], ".", "/"],
+    decision = "forbidden",
+    justification = "Do not recursively search all content under `/`; use a specific search term and scoped directory.",
+    match = ["grep -R . /", "grep -r . /"],
+    not_match = ["grep -R . .", "grep -R needle /tmp/project"],
+)
+
+# Waiting belongs in the agent's native wait/poll tools, not a sleeping process.
+prefix_rule(
+    pattern = ["sleep"],
+    decision = "forbidden",
+    justification = "Use a native wait or poll operation instead of a shell sleep.",
+    match = ["sleep 1", "sleep 10"],
+)
+
+# These host-administration and raw-disk utilities are outside normal repository work.
+prefix_rule(
+    pattern = [[
+        "sudo", "su", "shutdown", "reboot", "poweroff", "halt",
+        "mkfs", "mkfs.ext4", "mkfs.xfs", "mkfs.vfat", "mkfs.btrfs",
+        "wipefs", "dd", "fdisk", "parted",
+    ]],
+    decision = "forbidden",
+    justification = "Do not run privileged host, power-control, filesystem-formatting, or raw-disk commands.",
+    match = ["sudo apt install package", "shutdown now", "mkfs.ext4 /dev/example", "dd if=input of=/dev/example"],
+    not_match = ["git status", "rg --files ."],
+)
+
+# Never permit commands that explicitly target the filesystem root for deletion.
+prefix_rule(
+    pattern = ["rm", "-rf", "/"],
+    decision = "forbidden",
+    justification = "Never recursively delete the filesystem root.",
+    match = ["rm -rf /", "rm -rf / --no-preserve-root"],
+)
+
+prefix_rule(
+    pattern = ["rm", "--recursive", "--force", "/"],
+    decision = "forbidden",
+    justification = "Never recursively delete the filesystem root.",
+    match = ["rm --recursive --force /"],
+)
+
+# Ask before broad deletion, discarding Git work, or changing remote history.
+prefix_rule(
+    pattern = ["rm", "-rf"],
+    decision = "prompt",
+    justification = "Confirm the exact target before recursive forced deletion.",
+    match = ["rm -rf build/cache"],
+    not_match = ["rm -f generated.tmp"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "prompt",
+    justification = "Confirm before removing untracked files from the working tree.",
+    match = ["git clean -fdx", "git clean -n"],
+    not_match = ["git status"],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "prompt",
+    justification = "Confirm before discarding tracked working-tree changes.",
+    match = ["git reset --hard", "git reset --hard HEAD~1"],
+    not_match = ["git reset --soft HEAD~1", "git status"],
+)
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Confirm before changing remote repository state.",
+    match = ["git push", "git push origin main --force"],
+    not_match = ["git status", "git log -1"],
+)

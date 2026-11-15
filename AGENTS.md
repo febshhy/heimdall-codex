@@ -167,6 +167,8 @@ files, and does not determine whether Heimdall is installed.
 
 ## Commands
 
+Search only the current repository or a user-specified directory; do not start broad recursive searches at `/`. Prefer scoped `rg` queries and inspect only relevant results. Use native wait or poll tools instead of shell `sleep`.
+
 Discover build, lint, typecheck, and test commands from the actual repository. No application commands are predefined by this scaffold. The canonical Graph Protocol is `.agents/skills/graph-protocol/references/PROTOCOL.md`. Record discovered commands in this section as the project develops. For factory tooling use the Linux Bash + `jq` runtime; check shell syntax with `bash -n scripts/factory install.sh`, inspect the current schema-3 contract in `scripts/lib/contract.jq`, and use `scripts/factory tools` for read-only optional tool discovery. For installation run `bash install.sh --help`, a `--dry-run` on a disposable Git repository, and `--verify` after installing. For public-facing README, setup, and usage changes, check Markdown references and factual claims against the current source. For database-design changes, check source-specific claims and distinguish measured behavior from estimates. Run the **user project's** applicable tests and checks for application changes. New delegated-WRITE plans use `.agents/skills/graph-protocol/PLAN_EXAMPLE.json` as a template and `scripts/factory` as the evidence controller.
 
 ## Project facts
