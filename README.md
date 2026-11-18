@@ -13,9 +13,9 @@ Heimdall gives Codex a disciplined way to work in real codebases. Use it with Co
 
 ## Why Heimdall?
 
-- **The problem.** Codex hides confidential reports on a page and the test passes. Exports and scheduled emails still expose them.
-- **What teams use today.** Prompts guide the agent, CI checks tested paths, and reviewers inspect the diff. Finding an affected path outside the patch still depends on someone looking for it.
-- **What Heimdall adds.** A repeatable workflow in the repository: trace affected paths, decide where the rule belongs, and verify each path. When agents share the work, define who owns each change, what they hand off, and how it gets reviewed. [See the report-access example](marketing/HOW_IT_WORKS.md#example-a-shared-access-rule).
+Say you ask Codex to restrict access to confidential reports. It updates the reports page and the tests pass, but people can still get the same reports through an export or a scheduled email. A careful prompt or code review can catch that. Someone still has to know where to look.
+
+Heimdall gives Codex a way to find those paths before editing. It traces how reports are read, exported, and sent, then uses the project’s tests to check the access rule wherever it applies. If agents split the work, each knows what it owns and what to hand off for review. [See the report-access example](marketing/HOW_IT_WORKS.md#example-a-shared-access-rule).
 
 <picture>
   <source media="(max-width: 640px)" srcset="marketing/heimdall-flow-mobile.svg">
