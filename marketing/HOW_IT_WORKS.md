@@ -24,7 +24,7 @@ A single agent can handle bounded work. When several tasks have real dependencie
 
 Trace report access through the interface, API, exports, and scheduled delivery. Locate the authorization check for each path.
 
-Test allowed and denied cases on each affected path. An example call graph:
+Test allowed and denied cases on each affected path. This illustrative flow shows where those checks could live.
 
 ```text
 Report request

@@ -171,7 +171,9 @@ For an existing codebase, Codex can use `$project-adoption` and `$software-desig
 
 ## Verify, recover, or remove
 
-Verify project installation at any time:
+These commands operate on Heimdall-managed files and preserve your application's `docs/` directory.
+
+Verify the installed Heimdall files and Codex instruction integration:
 
 ```bash
 bash .heimdall/install.sh --verify
