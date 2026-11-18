@@ -163,6 +163,12 @@ codex
 
 The installer itself still needs Linux Bash or WSL and the prerequisites above, even when you use the IDE extension or desktop app. Run its commands from that Bash environment; the Codex client does not need the CLI installed.
 
+**Codex Cloud on the web:** Open [chatgpt.com/codex](https://chatgpt.com/codex/), choose **Work in > Cloud**, and select an environment that can access your project repository. Cloud tasks use a separate remote workspace, so first install Heimdall in your project, commit the installed files, and push them to the connected GitHub or GitLab repository. The cloud task then receives the repository version, not files that exist only in your local checkout. See OpenAI's [Codex Cloud environment guide](https://learn.chatgpt.com/docs/environments/cloud-environments) for the current environment setup flow.
+
+If you do not have a cloud environment yet, create one from the environment picker or **Settings > Codex Cloud > Environments**. Select your repository, let Codex prepare and test the environment, and publish it. Include the project runtimes and tools your tasks need. For Heimdall factory commands, that includes Linux Bash and `jq`; install other prerequisites from this guide when the task runs the installer itself. Review environment network access and repository permissions before starting tasks.
+
+Codex Cloud supports skills stored in the repository, including Heimdall's `.agents/skills/`; [personal skills from your computer are not synced](https://learn.chatgpt.com/docs/environments/cloud-environments#current-limitations). OpenAI's Cloud documentation does not specify that local `.codex/config.toml` settings or custom `.codex/agents/` profiles are loaded in Cloud, so do not rely on those local settings there without checking the current Cloud behavior. Each cloud task has its own working files; review its changes and commit or open a pull request when ready. It does not directly update your local checkout.
+
 For an existing codebase, Codex can use `$project-adoption` and `$software-design-thinking` to inspect real source and trace relevant execution paths. The installer does not invent architecture graphs or historical decisions. [Start with a read-only task](USAGE.md#first-session).
 
 ## Verify, recover, or remove
