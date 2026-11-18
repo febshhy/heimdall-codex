@@ -43,3 +43,33 @@ wrap the boundary; A/E/R remains worker-owned between begin and end.
 
 Only the current schema-3 contract is supported. Large structured JSON is passed
 to jq through files, not command-line arguments.
+
+## Recorded readiness and coordinator acceptance
+
+`ready` checks that the node has not started and that predecessor returns and
+receipts satisfy the recorded gates. `validate` checks the completed graph
+against the observed evidence. Before dispatch, the coordinator also checks
+the actual diff, test results, and independent review where required. A review
+note is recorded evidence supplied to the CLI. Review quality and independence
+remain coordinator judgments. Hold a successor if its required evidence is
+missing, stale, or disputed, even when the CLI reports readiness.
+
+## Recover an interrupted node
+
+1. Inspect the recorded status, worker state, owning worktree, and partial diff.
+   If the worker is still active, wait or explicitly stop it before recovery.
+   Preserve its edits and the existing evidence.
+2. If a node is still recorded as running after the worker has stopped, abort
+   it from the owning worktree. The command marks the node failed and releases
+   its matching lease.
+
+   ```sh
+   scripts/factory status --graph .work/graphs/task.json
+   scripts/factory abort --graph .work/graphs/task.json --node N2 --reason 'Worker exited before returning evidence'
+   ```
+
+3. Keep the old graph for diagnosis. If work can continue, reconcile any
+   partial edits with the intended scope and initialize a fresh schema-3 plan
+   at a new graph path. A started node cannot be restarted in place, and a plan
+   change also requires a fresh graph. Verify the new graph's inputs against
+   current source and observed evidence before dispatch.
