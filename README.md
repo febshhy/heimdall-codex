@@ -13,9 +13,7 @@ Heimdall gives Codex a disciplined way to work in real codebases. Use it with Co
 
 ## Why Heimdall?
 
-An AI-built checkout can work in a demo and charge a customer twice when a payment times out and gets retried. At that point, the team has to work out which system owns the payment state, what the customer actually paid, and whether a rollback would help or make things worse. The same team has to maintain that code after the chat ends.
-
-Prompts, CI, and code review help. They work best when the team has already made the failure cases explicit. Heimdall gives Codex a process for doing that in the repository itself. Trace the existing code, agree on what must hold, make a bounded change, and show which checks support it. When several agents work on the change, each has a defined scope and hands off evidence the next agent can inspect. [See how to handle retries and uncertain outcomes](marketing/ENGINEERING_PLAYBOOK.md#5-recovery--design-for-duplicate-and-uncertain-outcomes).
+An AI-built checkout can pass CI and still charge someone twice after a timeout. Tests and review help when someone knows to check that case. Heimdall gives Codex a workflow for finding those gaps before editing, then showing what changed and how it was verified. [See the recovery example](marketing/ENGINEERING_PLAYBOOK.md#5-recovery--design-for-duplicate-and-uncertain-outcomes).
 
 <picture>
   <source media="(max-width: 640px)" srcset="marketing/heimdall-flow-mobile.svg">
