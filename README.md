@@ -19,7 +19,7 @@ Teams already use prompts, repository instructions, CI, and pull-request review 
 
 **Heimdall makes that work part of the repository’s engineering process.** The goal is to carry an approved change from intent to implementation with enough evidence for someone else to review the result. For the report rule, that means tracing how reports are read, exported, and delivered, locating where authorization belongs, and checking both allowed and denied access on the affected paths. [Walk through the access-rule example](marketing/HOW_IT_WORKS.md#example-a-shared-access-rule).
 
-The template gives Codex shared methods for requirements, domain and UI behavior, data, and verification. Codex handles small changes directly. When work spans agents, Graph Protocol makes ownership, inputs, and required outputs explicit. The coordinator checks the actual diff, test results, and independent review before accepting the change or proceeding with authorized delivery. Later sessions can follow the same process using the project’s own tools and conventions.
+The template gives Codex shared methods for requirements, domain and UI behavior, data, and verification. Codex handles small changes directly. When work spans agents, Graph Protocol makes ownership, inputs, and required outputs explicit. The coordinator checks the actual diff and test results, and delegated code changes get independent review. Later sessions can follow the same process using the project’s own tools and conventions.
 
 <picture>
   <source media="(max-width: 640px)" srcset="marketing/heimdall-flow-mobile.svg">
