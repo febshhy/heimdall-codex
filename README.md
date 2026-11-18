@@ -57,7 +57,7 @@ bash .heimdall/install.sh --verify
 
 Open the project in Codex CLI with `codex`, in the IDE extension, or in the ChatGPT desktop app and choose Local or Worktree. For Codex on the web, connect the repository at [chatgpt.com/codex](https://chatgpt.com/codex/) and follow the [app setup steps](marketing/SETUP.md#start-codex).
 
-For a [new project](marketing/SETUP.md#new-project), [global installation](marketing/SETUP.md#global-installation), or recovery, use the [setup guide](marketing/SETUP.md).
+For a [new project](marketing/SETUP.md#new-project) or recovery, use the [setup guide](marketing/SETUP.md).
 
 ## Give Codex a first task
 

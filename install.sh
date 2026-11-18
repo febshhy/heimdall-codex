@@ -4,11 +4,6 @@ set -euo pipefail
 umask 077
 
 SOURCE=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
-# Global installation uses a separate user-scoped lifecycle and manifest.
-if [[ ${1:-} == --global ]]; then
-  shift
-  exec bash "$SOURCE/install-global.sh" "$@"
-fi
 ACTION=install
 TARGET=.
 INTEGRATE=0
@@ -35,10 +30,7 @@ usage(){ cat <<'HELP'
 Usage: bash install.sh [--project DIR] [--integrate-agents] [--with-bend2|--without-bend2] [--dry-run]
        bash install.sh --verify [--project DIR]
        bash install.sh --remove [--project DIR]
-       bash install.sh --global [--dry-run] [--integrate-agents]
-       bash install.sh --global --verify|--remove
 
-  --global             Install shared guidance, skills, and release for this user
   --project DIR        Git repository root (default: current directory)
   --integrate-agents   Approve adding a bounded reference to active project instructions
   --with-bend2         Enable proofs (requires an installed Bend 2 binary and passing smoke proof)
