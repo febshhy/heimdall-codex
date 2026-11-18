@@ -496,4 +496,5 @@ for rel in "${DELETED[@]}"; do
 done
 note "Installed ${#RELS[@]} files in $TARGET (instructions: $ACTIVE_AGENTS; Bend2: $([[ $BEND2 -eq 1 ]] && echo enabled || echo disabled))"
 note "Verify: cd '$TARGET' && bash .heimdall/install.sh --verify"
-note "Start:  open '$TARGET' in Codex CLI, the IDE extension, or the desktop app"
+note "Start locally: open '$TARGET' in Codex CLI, the IDE extension, or the ChatGPT desktop app"
+note "Codex web/Cloud: commit and push this repository, then open its connected remote version"

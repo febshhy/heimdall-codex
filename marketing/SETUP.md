@@ -8,7 +8,7 @@
 
 Run the installer in **Linux Bash**. On Windows, use **WSL**; these are not Command Prompt or PowerShell commands. Native Windows installation is not provided.
 
-You need Bash 4.4+, Python 3.9+, Git, `jq`, and standard Linux tools such as `flock`, `sha256sum`, `timeout`, `find`, `sort`, and core utilities. You also need a signed-in Codex client: [Codex CLI](https://github.com/openai/codex), the [Codex IDE extension](https://developers.openai.com/codex/ide), or the Codex desktop app. The CLI is optional.
+You need Bash 4.4+, Python 3.9+, Git, `jq`, and standard Linux tools such as `flock`, `sha256sum`, `timeout`, `find`, `sort`, and core utilities to run the installer. You also need a signed-in Codex client: [Codex CLI](https://github.com/openai/codex), the [Codex IDE extension](https://developers.openai.com/codex/ide), Codex in the ChatGPT desktop app, or Codex Cloud on the web. The CLI is optional. Cloud use also requires Cloud access and a connected repository that the task environment can use.
 
 Check the main tools:
 
@@ -19,7 +19,7 @@ git --version
 jq --version
 ```
 
-If you use Codex CLI, check it with `codex --version`. If you use the IDE extension or desktop app, install and sign in to that client instead; no Codex CLI command is needed.
+If you use Codex CLI, check it with `codex --version`. Sign in to the IDE extension or desktop app when using those clients. For Codex Cloud, sign in to ChatGPT and confirm the connected account can access the project repository. No Codex CLI command is needed for these options.
 
 For Ubuntu or Debian, install the common system dependencies if missing:
 
@@ -148,7 +148,7 @@ Review the preview before applying. Global installation does not modify applicat
 
 ## Start Codex
 
-After project installation, open the target repository in one of these Codex clients. Trust the project so Codex can load its project-scoped `.codex/config.toml` settings.
+After project installation, open the target repository in a local Codex client (CLI, IDE extension, or desktop app in Local or Worktree mode). Trust the project so the local client can load its project-scoped `.codex/config.toml` settings. For Codex on the web or desktop app Cloud mode, use a connected repository and follow the Cloud steps below; local trust settings and files that were never committed are not part of the remote task.
 
 **Codex CLI:**
 
@@ -165,7 +165,7 @@ The Heimdall installer still needs Linux Bash or WSL and the prerequisites above
 
 **Codex on the web:** Open [chatgpt.com/codex](https://chatgpt.com/codex/) and start a Cloud task. In the desktop app, you can also choose **Cloud** when you want the same remote execution mode. Cloud tasks use a separate remote workspace, so first install Heimdall in your project, commit the installed files, and push them to the connected GitHub or GitLab repository. The task receives the repository version, not files that exist only in your local checkout. See OpenAI's [Codex Cloud environment guide](https://learn.chatgpt.com/docs/environments/cloud-environments) for the current setup flow.
 
-If you do not have a cloud environment yet, create one from the environment picker or **Settings > Codex Cloud > Environments**. Select your repository, let Codex prepare and test the environment, and publish it. Include the project runtimes and tools your tasks need. For Heimdall factory commands, that includes Linux Bash and `jq`; install other prerequisites from this guide when the task runs the installer itself. Review environment network access and repository permissions before starting tasks.
+If you do not have a cloud environment yet, create one from the environment picker or **Settings > Codex Cloud > Environments**. Select your repository, let Codex prepare and test the environment, and publish it. Include the project runtimes and tools your tasks need. If a Cloud task will run Heimdall's installer or factory commands, make the prerequisites listed above available in that Linux environment and make Heimdall's source available to the task, for example by adding its repository to the environment. Ask Codex to preview the install first, review the plan, then apply and verify it. Commit and push the installed files so later tasks start from a repository version that contains them. Review environment network access and repository permissions before starting tasks.
 
 Cloud supports skills stored in the repository, including Heimdall's `.agents/skills/`; [personal skills from your computer are not synced](https://learn.chatgpt.com/docs/environments/cloud-environments#current-limitations). OpenAI's Cloud documentation does not specify that local `.codex/config.toml` settings or custom `.codex/agents/` profiles are loaded in Cloud, so do not rely on those local settings there without checking the current Cloud behavior. Each cloud task has its own working files; review its changes and commit or open a pull request when ready. It does not directly update your local checkout.
 
