@@ -1,6 +1,9 @@
 ---
 name: content-writing
-description: Write and review clear, accurate, inclusive user-facing copy in English, Bahasa Indonesia, and other project languages: UI messages, microcopy, README files, guides, release notes, and public pages. Preserve the product voice, state contract, and source evidence.
+description: >-
+  Write and review UI copy, README files, guides, release notes, and public pages.
+  Preserve the product voice, state contract, and source evidence in English,
+  Bahasa Indonesia, or the project's language.
 ---
 
 # Copy and content design — information contract
@@ -13,7 +16,7 @@ Reader + locale + task + approved product state + source evidence
     → Draft reader-first, precise, inclusive copy
       → Verify reality and UI state/permission semantics
         → Writing-quality review (+ RASA for en/id)
-          → Revise → Deliver copy deck | Document
+  → Revise → Deliver edited copy
 ```
 
 ## Information and state contract
@@ -36,4 +39,7 @@ For substantial work load `references/WRITING_QUALITY.md` and `../visual-design/
 
 **Markdown docs:** keep readable content in Markdown, not text baked into images. Use one meaningful H1, ordered headings, blank lines, tagged code fences, appropriate lists, working relative links/anchors, alt text for meaningful illustrations, and readable mobile layout when relevant. Images must add independent meaning; keep claims/qualifications as text. Do not automatically write protected `docs/`.
 
-**Deliver:** UI copy deck `surface/state → exact text → intent → evidence → accessibility/localization → status`; ordinary docs → revised document plus material verified/hypothetical/open claims. For minor edits scale review down, not accuracy.
+**Deliver:** provide the edited copy in context. For minor edits, check meaning,
+terminology, and the action a reader should take. Use a separate copy deck for
+multi-state review or handoff. Include surface, state, exact text, purpose,
+and material verification or localization notes as needed.

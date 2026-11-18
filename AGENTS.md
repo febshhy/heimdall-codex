@@ -137,6 +137,11 @@ Use trunk-based development. Branch from current trunk (`main` in this repo),
 keep task branches short-lived, and integrate through a PR. Give concurrent
 writers separate worktrees. The coordinator owns cleanup after merge.
 
+Commit verified task changes before reporting completion unless the user
+explicitly requests an uncommitted result. Stage only task-owned changes.
+In the `febshhy/heimdall-codex` repository, finish on `main` through the routine
+PR path unless the user limits delivery to local work.
+
 When asked to push or deliver repository changes, the coordinator treats that
 as authorization for the routine PR path through merge and confirmation, unless
 the user explicitly limits delivery. Routine PRs need independent agent review

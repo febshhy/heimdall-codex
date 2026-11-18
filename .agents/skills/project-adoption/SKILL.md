@@ -18,7 +18,8 @@ Inspect project instructions + requirements + ADRs + tests
       → Source-grounded call-graph slice + Software Design Thinking model
         → Compare with accepted records
           → Known | Unknown | Assumption | Proposed Decision
-            → User review → Accepted baseline | Partial findings
+            → Report first-pass findings
+              → User review if formally adopting the baseline
 ```
 
 **Authority:** `$requirements` owns approved behavior, `$software-design-thinking` owns state/shapes/invariants/errors/needs/effects/owners, `$testing` owns verification, `$adr` owns consequential proposed decisions, `$repository-work` owns authorized writes. Load only applicable skills.
@@ -28,3 +29,7 @@ Inspect project instructions + requirements + ADRs + tests
 **Evidence and output:** one compact Software Design Thinking slice per bounded flow: shapes, state, invariant, graph, errors, needs/effects, owners; cite inspected paths/revision, tests/deployment limits, conflicts and unresolved approvals. Source shape alone does not prove historical ADR rationale. Do not generate automatic historical `ADR-0000` records; proposed new ADRs remain Proposed until a person accepts. Start with one high-impact subsystem for large repos; report partial discovery without blocking installation.
 
 **Effects and security:** read existing `docs/` only when allowed; never create/change/delete protected end-user project docs automatically. Save an artifact only upon explicit approval of that documentation effect. Keep preliminary findings in the response. Do not execute untrusted code or inspect credential values as automatic discovery, fabricate entry points, edges, test coverage, approval or data; do not enlarge Codex permissions.
+
+The first pass is complete when it traces one important production flow,
+identifies its governing records and relevant commands, and reports unknowns.
+Expand coverage when the task warrants it.

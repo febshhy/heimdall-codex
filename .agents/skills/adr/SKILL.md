@@ -11,7 +11,7 @@ description: Use for an important architectural decision that is difficult to re
 Consequential choice?
   → No: no ADR
   → Yes: read applicable decisions and project criteria
-    → Existing ADR? supersede instead of duplicate
+    → Existing ADR? link a proposed successor
       → Draft Proposed(Context, Evidence, Alternatives, Decision,
                        Consequences, Revisit condition)
         → Human review → Accepted | Remain Proposed
@@ -19,4 +19,4 @@ Consequential choice?
 
 **Authority:** only a person may mark an ADR `Accepted`; an ADR cannot override an approved requirement. A conflict returns to the requirements Question Gate.
 
-**Guards and output:** read project `docs/adr/README.md` when present; otherwise use `assets/ADR_TEMPLATE.md` and these criteria. Read existing relevant ADRs; keep facts source-grounded and decision concise (one or two sentences), with real alternatives and reversal/review condition. Create at most one new ADR per task. If the project explicitly adopts `docs/adr/`, propose the next number and write only with approval under the project's protected `docs/` rule; otherwise use its existing decision-record location, without overwriting. Report path and `Proposed` status. Do not turn an inferred historical choice into an accepted ADR.
+**Guards and output:** read project `docs/adr/README.md` when present; otherwise use `assets/ADR_TEMPLATE.md` and these criteria. Read relevant ADRs and keep facts source-grounded. Record one ADR per consequential decision that can be accepted or reversed independently. A proposed successor leaves the existing ADR in force until acceptance. Include real alternatives and a revisit condition. Use the existing decision-record location. Obtain explicit authorization for writes to protected `docs/`. Report the path and status. Historical source structure alone cannot establish an accepted ADR.

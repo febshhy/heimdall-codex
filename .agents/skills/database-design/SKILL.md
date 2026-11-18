@@ -17,7 +17,11 @@ Job + known/unknown facts + readers/writers + failure stakes
             → Measured checks and decision | Explicit unknown / experiment
 ```
 
-**Scale:** a query or column fix needs a relevant shape, compatibility, explain/query check and targeted test. New schema, shared writer, analytics or DB replacement warrants broader evaluation. Use references selectively; no database change/ADR/benchmark for cosmetic UI work.
+**Scale:** for a query or index fix, inspect the current access path, describe
+the proposed change, and check representative query behavior and the actual
+plan where available. Check write cost or compatibility when affected. Use
+`references/QUERY-AND-INDEX-DESIGN.md` when needed. Load modeling or operations
+guidance when the change affects schema, shared writers, migrations, or recovery.
 
 ## Separate the axes
 

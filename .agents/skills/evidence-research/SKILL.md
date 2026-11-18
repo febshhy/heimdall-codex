@@ -9,13 +9,19 @@ description: Evidence-based technical investigation for software design choices 
 
 ```text
 Small factual question → targeted source → verify fact, version and date → report
-Broad consequential research → N1, N2, N3… (independent questions)
-  → independent reviewer R(Ni) for every Ni
-    → single indexer → synthesizer → coordinator acceptance
+Broad consequential research → one node per independent material question
+  → independent review of consequential or disputed claims
+    → synthesize → coordinator acceptance
       → Accepted evidence | Disputed/unknown | Blocked dependent decision
 ```
 
-**Broad-graph guards:** use at least three non-overlapping research N nodes only when the decision warrants them; give each independent native Codex agent bounded context, its own scratch artifact and sources. Exactly one independent fact-check R node reviews each N. Label important claims `VERIFIED | UNVERIFIED | DISPUTED`, with actual sources, retrieval dates and versions. The indexer alone owns the shared reference inventory. The synthesizer integrates corrected findings, alternatives, unknowns and implementation consequences. The main coordinator confirms every planned N has its R and gates high-risk dependent design on accepted evidence.
+**Broad-graph guards:** give each research agent a bounded question, sources,
+and its own scratch artifact. Label important claims
+`VERIFIED | UNVERIFIED | DISPUTED` with sources, retrieval dates, and versions.
+Assign independent review where a claim could materially change the decision
+or is disputed. The coordinator can combine and synthesize findings directly.
+Assign separate indexing or synthesis only when volume warrants it. Gate
+dependent decisions on the evidence they require.
 
 **Failure transitions:** after a plausible transient failure is corrected, retry at most once, preserving failed records. Missing source, disputed claim or failed review → explicitly report gap and block the decision that depends on it. Nonempty output files are not completion evidence.
 

@@ -15,7 +15,8 @@ Inspect goal/repo → Retrieve authorized behavior
         → Direct bounded work OR plan DAG and delegate ready nodes
           → Verify (incl. independent review for delegated WRITE)
             → Reconcile observed A/E/R + actual changes
-              → Complete | Partial(reason) | Blocked(reason)
+              → Local scope: commit and report verified result unless requested uncommitted
+              → Authorized delivery: merge to trunk → verify cleanup → report
 ```
 
 ## Classification and design
@@ -40,7 +41,7 @@ Dispatch only ready nodes; missing/failed/disputed predecessors block successors
 
 ```text
 User-reviewed LAWS.bend (+ normative SPEC.bend assumptions)
-  → model/proof WRITE → scripts/factory proof passes real law/proof pair
+  → model/proof WRITE → repository-wide scripts/factory proof passes with this pair
     → production WRITE → model-to-production conformance
       → integration/effect checks → final acceptance
 ```
@@ -48,5 +49,10 @@ User-reviewed LAWS.bend (+ normative SPEC.bend assumptions)
 Smoke proof never qualifies. Law or normative-assumption changes return to operator approval; do not silently replace failed formal verification with tests. If Bend unavailable or model cannot faithfully express selected scope, block or request explicit rescope. Other behavior uses ordinary approved requirements and tests.
 
 ## Acceptance and report
+
+For authorized delivery, load the repository-work Git and PR procedure before
+creating a task branch. Local verification is an input to delivery. Keep the
+task active through independent review, verified trunk merge, and branch
+cleanup. Report a concrete blocker if any required step cannot finish.
 
 Run the actual applicable build/lint/tests, inspect Git diff and independent delegated-WRITE review, then validate every planned node and schema-3 return. Reject missing evidence, contradicting observation, required but absent review, invalid graph, or failed checks. Graph comparison is not application correctness. Report changed paths, approved requirement coverage, executed commands/results, review/evidence, unresolved risks and approvals. Include source-derived call-graph slices when `AGENTS.md` requires them; mark stale/unverified evidence, use the project's inspected revision and keep logs in `.work/`. Never claim a command/proof ran without observation, delete required checks to save tokens, or copy full logs into worker prompts. `jq` is required by the controller; optional tools never change the A/E/R contract.
