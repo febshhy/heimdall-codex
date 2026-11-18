@@ -24,7 +24,7 @@ Software is easier to reason about when you can answer six questions in order:
 6. EVIDENCE     What check supports each important claim?
 ```
 
-This order is a **reasoning dependency**, not six mandatory software layers. A small, stateless function may need only a contract, a calculation, and a test. A durable workflow needs the full path. The categories come from the concerns they resolve: correctness requires a contract; a transition requires a defined state; effects require an owner; recovery requires known failure semantics; and verification requires a specific claim.
+Use this order to reason through a change. A small, stateless function may need only a contract, a calculation, and a test. A durable workflow needs the full path. The categories come from the concerns they resolve: correctness requires a contract; a transition requires a defined state; effects require an owner; recovery requires known failure semantics; and verification requires a specific claim.
 
 ### A running example: report exports
 
@@ -35,11 +35,11 @@ Assume a product owner has approved these **illustrative** requirements:
 - Repeating the same request with the same idempotency key must not create a second export job.
 - A job can finish successfully or report a failure. A client can inspect its status.
 
-The application must still define its actual authorization policy, CSV contents, retention, cancellation behavior, and operational limits. Those choices cannot be inferred from this example.
+Define the application’s authorization policy, CSV contents, retention, cancellation behavior, and operational limits.
 
 ## 1. Contract — define success before structure
 
-**Basis: design by contract and requirements traceability.** The product contract defines observable obligations. The implementation explains *how* they hold; the implementation is not the authority that invents them.
+**Basis: design by contract and requirements traceability.** The product contract defines observable obligations. The implementation enforces those obligations.
 
 Separate four kinds of knowledge:
 
@@ -59,7 +59,7 @@ C3: (same actor, same key, same request) → same job identity.
 C4: (same actor, same key, different request) → conflict.
 ```
 
-C1–C4 are example contracts, not formal proofs. Turn them into code and tests only after their meaning and owner are agreed. In particular, C3 needs an explicit key scope and request fingerprint; an API header alone cannot enforce it.
+Agree on each contract and its owner before implementing it. For C3, define the key scope and request fingerprint.
 
 **Apply it:** Trace every entry point that can create or deliver an export: API calls, background jobs, downloadable links, and other real paths found in the source. Record uncertain paths as unknown. Ask for a product decision where the uncertainty changes an observable result.
 
@@ -99,7 +99,7 @@ Inv(job):
   job.status = Running(a) → a is an identified processing attempt
 ```
 
-Do not assume a type declaration guarantees the first rule. An external artifact may disappear even when `Ready(ref)` is well-typed; persistence and integrity checks are still required.
+Verify artifact persistence and integrity when serving `Ready(ref)`.
 
 A **state machine** makes legality explicit:
 
@@ -109,9 +109,9 @@ Running --Complete-->  Ready
 Running --Fail-->      Failed
 ```
 
-Transitions not listed are rejected or deliberately ignored according to the contract. An interrupted `Running` job needs a recovery policy before production use; the graph above describes normal transitions only.
+Define which events the machine rejects or ignores. Specify how to recover an interrupted `Running` job.
 
-A state machine can be written as `δ : State × Event → State | Error`. A stronger version makes the required context and requested effects explicit.
+A state machine can be written as `δ : State × Event → State | Error`. Include required context and requested effects when they affect the transition.
 
 **Apply it:** List every datum that survives a function call. Assign it to input, domain state, or an owned resource. Identify illegal combinations and all legal state transitions before introducing classes or database tables. See [`$software-design-thinking`](../.agents/skills/software-design-thinking/SKILL.md).
 
@@ -149,7 +149,7 @@ parse request
   → Err(BadInput)  ──────────────────────────────→ respond with error
 ```
 
-This is a useful composition technique, not a requirement to use a particular functional-programming library. Unexpected defects remain defects; do not convert every programming error into a recoverable domain error.
+Use the result type for expected failures. Surface unexpected defects through the application’s error handling.
 
 **Effects as data** allow the core to request an action without executing it:
 
@@ -200,7 +200,7 @@ For the export example, the job repository is the single writer for the durable 
 
 ## 5. Recovery — design for duplicate and uncertain outcomes
 
-**Basis: distributed failure semantics, idempotency, and concurrency control.** An operation can succeed remotely even when the caller receives no response. A timeout alone does not prove failure.
+**Basis: distributed failure semantics, idempotency, and concurrency control.** An operation can succeed remotely even when the caller receives no response. Treat a timeout as an unknown outcome until reconciled.
 
 ```text
 Effect attempt
@@ -211,7 +211,7 @@ Effect attempt
 
 ### Idempotency
 
-For an operation identified by key `k`, the intended externally visible effect of repeating the same valid request should match that of one request. This is a semantic contract, not merely a retry loop.
+For an operation identified by key `k`, the intended externally visible effect of repeating the same valid request should match that of one request.
 
 For report exports, define:
 
@@ -252,7 +252,7 @@ For each expected error, choose an explicit strategy: propagate, translate, reco
 | Interrupted work can resume safely | Restart and recovery exercise | The exercised failure scenario. |
 | A formal law holds for a Bend model | Actual reviewed `LAWS.bend` and verified `PROOF.bend` | The stated property for the checked model and assumptions. |
 
-A passing test is evidence for its covered behavior, not a proof of every execution. A mock of the storage system cannot establish the real storage system's transactional properties.
+Use tests against the actual storage engine to verify its transactional behavior.
 
 Testing is most useful when linked to the original claim:
 
@@ -264,25 +264,23 @@ Approved contract → Design invariant → Implementation boundary
                                    Observed result + scope
 ```
 
-**Formal verification** is a separate, optional mechanism. Where a pure invariant can be modeled faithfully, Heimdall uses reviewed `LAWS.bend`, a model, and `PROOF.bend`. The approved law specifies the selected behavior; the proof addresses the model; production conformance still needs verification. Do not interpret ordinary mathematical notation in this playbook as a machine-checked proof.
+**Formal verification** is a separate, optional mechanism. Where a pure invariant can be modeled faithfully, Heimdall uses reviewed `LAWS.bend`, a model, and `PROOF.bend`. The approved law specifies the selected behavior; the proof addresses the model; production conformance still needs verification.
 
 **Apply it:** Report passed, failed, inconclusive, and not-run checks with their actual scope. Link claims to evidence at the inspected revision. See [`$testing`](../.agents/skills/testing/SKILL.md) and the [Bend proof guide](../proofs/README.md).
 
 ## 7. Apply the foundations to specialized work
 
-These are **applications of the same six questions**, not additional architecture layers. Use the relevant domain method when the problem calls for it.
+Apply the same six questions in each area. Use the relevant domain method when the problem calls for it.
 
 | Work | Primary foundation | Additional questions | Skill |
 | --- | --- | --- | --- |
-| User interfaces | State + decisions | Who owns draft, focus, URL, loading, and error state? Can every reachable event be handled? | [`$gui-design-thinking`](../.agents/skills/gui-design-thinking/SKILL.md) |
+| User interfaces | State + decisions | Who owns draft, focus, navigation, loading, and error state? Can every reachable event be handled? | [`$gui-design-thinking`](../.agents/skills/gui-design-thinking/SKILL.md) |
 | Databases | Ownership + recovery | What is the workload, authoritative fact, transaction boundary, migration, and restore strategy? | [`$database-design`](../.agents/skills/database-design/SKILL.md) |
 | Security | Contracts + boundaries | Which actor is authorized at each entry point? What is the actual trust boundary? | [`$software-design-thinking`](../.agents/skills/software-design-thinking/SKILL.md), [credential boundary](../docs/security/CREDENTIAL_BOUNDARY.md) |
 | Coordinated agent work | Dependencies + evidence | Which tasks truly depend on others? Who owns each write, and who independently reviews it? | [`$graph-protocol`](../.agents/skills/graph-protocol/SKILL.md), [`$software-factory`](../.agents/skills/software-factory/SKILL.md) |
 | Architecture decisions | Contract + change cost | What alternatives were considered, and what would make the choice worth revisiting? | [`$adr`](../.agents/skills/adr/SKILL.md) |
 | Research | Known / unknown + evidence | What claim needs a source? What conflicts or uncertainty remain? | [`$evidence-research`](../.agents/skills/evidence-research/SKILL.md) |
 | Writing and visual design | Reader contract + state | What must the person understand or do? Does presentation match actual behavior? | [`$content-writing`](../.agents/skills/content-writing/SKILL.md), [`$visual-design`](../.agents/skills/visual-design/SKILL.md) |
-
-For agent delegation, **A/E/R task graphs are not domain execution graphs**. A task prerequisite does not prove a product dependency. For UI work, a screenshot does not verify interaction behavior. For security, written agent instructions do not isolate credentials; use a real execution boundary.
 
 ## Work the example from end to end
 

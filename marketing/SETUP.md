@@ -6,7 +6,7 @@
 
 ## Prerequisites
 
-Run the installer in **Linux Bash**. On Windows, use **WSL**; these are not Command Prompt or PowerShell commands. Native Windows installation is not provided.
+Run the installer in **Linux Bash**. On Windows, run the installer in **WSL**.
 
 You need Bash 4.4+, Python 3.9+, Git, `jq`, and standard Linux tools such as `flock`, `sha256sum`, `timeout`, `find`, `sort`, and core utilities to run the installer. You also need a signed-in Codex client: [Codex CLI](https://github.com/openai/codex), the [Codex IDE extension](https://developers.openai.com/codex/ide), Codex in the ChatGPT desktop app, or Codex Cloud on the web. The CLI is optional. Cloud use also requires Cloud access and a connected repository that the task environment can use.
 
@@ -19,7 +19,7 @@ git --version
 jq --version
 ```
 
-If you use Codex CLI, check it with `codex --version`. Sign in to the IDE extension or desktop app when using those clients. For Codex Cloud, sign in to ChatGPT and confirm the connected account can access the project repository. No Codex CLI command is needed for these options.
+If you use Codex CLI, check it with `codex --version`. Sign in to the IDE extension or desktop app when using those clients. For Codex Cloud, sign in to ChatGPT and confirm the connected account can access the project repository.
 
 For Ubuntu or Debian, install the common system dependencies if missing:
 
@@ -28,7 +28,7 @@ sudo apt update
 sudo apt install bash python3 git jq util-linux coreutils findutils
 ```
 
-Use `sudo` only to install system packages. **Run Heimdall as your normal user.** Package names can differ on other Linux distributions.
+Use `sudo` only to install system packages. **Run Heimdall as your normal user.**
 
 ## Get the source
 
@@ -71,7 +71,7 @@ git -C "$HEIMDALL_SRC" remote -v
 
 `origin` should point to your fork and `upstream` to the original repository. Add `upstream` only once. Review incoming changes before incorporating them into a customized fork. See [GitHub's guide to syncing a fork](https://docs.github.com/en/pull-requests/how-tos/work-with-forks/syncing-a-fork).
 
-Forking alone does not install Heimdall. Continue with [Choose a setup path](#choose-a-setup-path) and use the local source directory shown above.
+Continue with [Choose a setup path](#choose-a-setup-path) and use the local source directory shown above.
 
 ### Download ZIP
 
@@ -81,7 +81,7 @@ On the [Heimdall GitHub repository](https://github.com/febshhy/heimdall-codex), 
 HEIMDALL_SRC="/path/to/extracted/heimdall-codex"
 ```
 
-Regardless of the method, inspect the source before running scripts. Teams can select an approved commit in a Git checkout. A commit identifies source content; it does not by itself establish publisher trust. Run the remaining commands in the same Bash session, or set `HEIMDALL_SRC` again in a new session.
+Regardless of the method, inspect the source before running scripts. Teams can select an approved commit in a Git checkout. Run the remaining commands in the same Bash session, or set `HEIMDALL_SRC` again in a new session.
 
 ## Choose a setup path
 
@@ -111,13 +111,13 @@ bash .heimdall/install.sh --verify
 git diff --stat
 ```
 
-`--integrate-agents` permits a bounded addition to existing `AGENTS.md` instructions. It does not replace unrelated instructions. Setup rejects unmanaged-file collisions and stale or option-mismatched plans.
+`--integrate-agents` permits a bounded addition to existing `AGENTS.md` instructions. Existing unrelated instructions stay in place. Setup rejects unmanaged-file collisions and stale or option-mismatched plans.
 
 If the worktree contains changes, commit or stash them before preview. An explicit `--allow-dirty` exception is available, but requires careful review and the same option on preview and apply.
 
 ## New project
 
-Choose a path that is absent or empty. Heimdall can initialize Git and install its instructions; it does not select a framework or generate application code.
+Choose a path that is absent or empty. Heimdall initializes Git and installs its instructions.
 
 ```bash
 mkdir -p "$HOME/projects"
@@ -136,7 +136,7 @@ Setup refuses unsafe nested repositories and populated directories without Git.
 
 ## Global installation
 
-For shared user-level instructions instead of project-managed files:
+For shared user-level guidance:
 
 ```bash
 bash "$HEIMDALL_SRC/install.sh" --global --integrate-agents --dry-run
@@ -144,11 +144,11 @@ bash "$HEIMDALL_SRC/install.sh" --global --integrate-agents
 bash "$HOME/.local/share/heimdall/release/install.sh" --global --verify
 ```
 
-Review the preview before applying. Global installation does not modify application repositories or install their project-specific reviewer configuration. It uses the default Codex home directory, not a custom `CODEX_HOME`.
+Review the preview before applying. Global installation writes shared guidance to the default Codex home. Use project installation to add a project-specific reviewer profile.
 
 ## Start Codex
 
-After project installation, open the target repository in a local Codex client (CLI, IDE extension, or desktop app in Local or Worktree mode). Trust the project so the local client can load its project-scoped `.codex/config.toml` settings. For Codex on the web or desktop app Cloud mode, use a connected repository and follow the Cloud steps below; local trust settings and files that were never committed are not part of the remote task.
+After project installation, open the target repository in a local Codex client (CLI, IDE extension, or desktop app in Local or Worktree mode). Trust the project so the local client can load its project-scoped `.codex/config.toml` settings.
 
 **Codex CLI:**
 
@@ -159,17 +159,15 @@ codex
 
 **Codex IDE extension:** Install and sign in to the [Codex extension](https://developers.openai.com/codex/ide) in VS Code or a supported editor. Open the target repository, then open the Codex sidebar and start a chat.
 
-**ChatGPT desktop app — Codex:** Open the app, select **Codex**, and choose the target repository. Choose **Local** to work in the current checkout, or **Worktree** to isolate changes in a separate Git worktree on your computer. Both modes use local files and tools; the Codex CLI is not required. For Worktree, commit the Heimdall installation so its repo instructions and skills are in the branch used to create the worktree. See OpenAI's [Codex environment modes](https://learn.chatgpt.com/docs/environments/modes) and [worktree guide](https://learn.chatgpt.com/docs/environments/git-worktrees).
+**ChatGPT desktop app — Codex:** Open the app, select **Codex**, and choose the target repository. Choose **Local** to work in the current checkout, or **Worktree** to isolate changes in a separate Git worktree on your computer. For Worktree, commit the Heimdall installation so its repo instructions and skills are in the branch used to create the worktree. See OpenAI's [Codex environment modes](https://learn.chatgpt.com/docs/environments/modes) and [worktree guide](https://learn.chatgpt.com/docs/environments/git-worktrees).
 
-The Heimdall installer still needs Linux Bash or WSL and the prerequisites above, even when you use the IDE extension or ChatGPT desktop app. Run installer commands from that Bash environment; the Codex client does not need the CLI installed.
+**Codex on the web:** Open [chatgpt.com/codex](https://chatgpt.com/codex/) and start a Cloud task. In the desktop app, you can also choose **Cloud** when you want the same remote execution mode. Cloud tasks use a separate remote workspace, so first install Heimdall in your project, commit the installed files, and push them to the connected GitHub or GitLab repository. See OpenAI's [Codex Cloud environment guide](https://learn.chatgpt.com/docs/environments/cloud-environments) for setup steps.
 
-**Codex on the web:** Open [chatgpt.com/codex](https://chatgpt.com/codex/) and start a Cloud task. In the desktop app, you can also choose **Cloud** when you want the same remote execution mode. Cloud tasks use a separate remote workspace, so first install Heimdall in your project, commit the installed files, and push them to the connected GitHub or GitLab repository. The task receives the repository version, not files that exist only in your local checkout. See OpenAI's [Codex Cloud environment guide](https://learn.chatgpt.com/docs/environments/cloud-environments) for the current setup flow.
+If you do not have a cloud environment yet, create one from the environment picker or **Settings > Codex Cloud > Environments**. Select your repository, let Codex prepare and test the environment, and publish it. Include the project runtimes and tools your tasks need. If a Cloud task will run Heimdall's installer or factory commands, make the prerequisites listed above available in that Linux environment and make Heimdall's source available to the task, for example by adding its repository to the environment. Ask Codex to preview the install first, review the plan, then apply and verify it. Commit and push the installed files for future Cloud tasks. Review environment network access and repository permissions before starting tasks.
 
-If you do not have a cloud environment yet, create one from the environment picker or **Settings > Codex Cloud > Environments**. Select your repository, let Codex prepare and test the environment, and publish it. Include the project runtimes and tools your tasks need. If a Cloud task will run Heimdall's installer or factory commands, make the prerequisites listed above available in that Linux environment and make Heimdall's source available to the task, for example by adding its repository to the environment. Ask Codex to preview the install first, review the plan, then apply and verify it. Commit and push the installed files so later tasks start from a repository version that contains them. Review environment network access and repository permissions before starting tasks.
+Store shared Cloud skills in the connected repository under `.agents/skills/`. Verify the effective settings and reviewer profiles in the Cloud task before relying on them. Review the task diff and open a PR to integrate it.
 
-Cloud supports skills stored in the repository, including Heimdall's `.agents/skills/`; [personal skills from your computer are not synced](https://learn.chatgpt.com/docs/environments/cloud-environments#current-limitations). OpenAI's Cloud documentation does not specify that local `.codex/config.toml` settings or custom `.codex/agents/` profiles are loaded in Cloud, so do not rely on those local settings there without checking the current Cloud behavior. Each cloud task has its own working files; review its changes and commit or open a pull request when ready. It does not directly update your local checkout.
-
-For an existing codebase, Codex can use `$project-adoption` and `$software-design-thinking` to inspect real source and trace relevant execution paths. The installer does not invent architecture graphs or historical decisions. [Start with a read-only task](USAGE.md#first-session).
+For an existing codebase, Codex can use `$project-adoption` and `$software-design-thinking` to inspect real source and trace relevant execution paths. [Start with a read-only task](USAGE.md#first-session).
 
 ## Verify, recover, or remove
 
@@ -179,7 +177,7 @@ Verify project installation at any time:
 bash .heimdall/install.sh --verify
 ```
 
-This checks installed instructions, not application correctness. If installation is interrupted, inspect the saved transaction and its recovery choices:
+If installation is interrupted, inspect the saved transaction and its recovery choices:
 
 ```bash
 bash "$HEIMDALL_SRC/scripts/heimdall" status --project /path/to/your-project
@@ -192,7 +190,7 @@ After reviewing the state, request a recorded revert if needed:
 bash "$HEIMDALL_SRC/scripts/heimdall" recover --project /path/to/your-project --revert
 ```
 
-Recovery preserves unfamiliar edits and may require manual resolution. It does not guarantee removal of every empty directory or Git metadata.
+Resolve any reported conflicts manually. Inspect leftover directories and Git metadata before removing them.
 
 Remove a current installation when appropriate:
 
@@ -203,8 +201,6 @@ bash .heimdall/install.sh --remove
 # Or, for a global installation:
 bash "$HOME/.local/share/heimdall/release/install.sh" --global --remove
 ```
-
-Installation, verification, and removal do not modify or delete your application's `docs/` directory.
 
 ## Resolve setup problems
 
@@ -223,9 +219,7 @@ Installation, verification, and removal do not modify or delete your application
 
 ## Security and permissions
 
-Codex can access resources granted to its execution environment. Heimdall instructs agents not to read secret values, but instructions cannot enforce isolation from credentials readable by the same OS identity. For confidential credentials, use a separately secured environment or external broker with scoped access. [Read the credential boundary](../docs/security/CREDENTIAL_BOUNDARY.md).
-
-Publishing new end-user documents under project `docs/` requires a separate, authorized documentation task. Setup does not populate this directory.
+Use a separately secured environment or external broker with scoped access for confidential credentials. [Read the credential boundary](../docs/security/CREDENTIAL_BOUNDARY.md).
 
 ## Optional Bend 2 proofs
 
@@ -236,6 +230,6 @@ bash "$HEIMDALL_SRC/scripts/heimdall" start --project . --with-bend2
 bash "$HEIMDALL_SRC/scripts/heimdall" start --project . --with-bend2 --apply
 ```
 
-Use a trusted Bend 2 executable. Approved `LAWS.bend` specify the selected formal behavior, while `PROOF.bend` supplies proof evidence for the model. Production still needs conformance checks. The smoke proof only checks the tool. [Read the proof workflow](../proofs/README.md).
+Use a trusted Bend 2 executable. Approved `LAWS.bend` specify the selected formal behavior, while `PROOF.bend` supplies proof evidence for the model. Production still needs conformance checks. [Read the proof workflow](../proofs/README.md).
 
 **[Try a task](USAGE.md)** · [Understand the method](HOW_IT_WORKS.md) · [Back to Heimdall](../README.md)
