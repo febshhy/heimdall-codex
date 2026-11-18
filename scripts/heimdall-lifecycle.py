@@ -179,7 +179,7 @@ def inspect_project(project, mode, allow_dirty):
         if any(project.iterdir()): reject('populated non-Git directory: initialize and baseline Git manually')
         if git(project.parent, 'rev-parse', '--show-toplevel', check=False).returncode == 0: reject('cannot initialize nested Git repository')
         return {'kind': 'empty', 'head': None, 'git_status': None, 'git_changed_files_hash': None}
-    git_root = Path(os.fsdecode(found.stdout).strip()).resolve()
+    git_root = Path(os.fsdecode(found.stdout).removesuffix('\n')).resolve()
     if git_root != project.resolve(): reject('provide the Git repository root')
     if mode == 'new': reject('new requires an absent or empty non-Git directory')
     status = git(project, 'status', '--porcelain=v1', '-z', '--untracked-files=all').stdout

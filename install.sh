@@ -68,10 +68,10 @@ while (($#)); do
   esac
 done
 [[ $EUID -ne 0 ]] || fail 'Run as your normal user, without sudo.'
-for exe in git jq sha256sum flock mktemp find sort cp mv cmp grep sed rm awk chmod timeout; do command -v "$exe" >/dev/null || fail "Missing required command: $exe"; done
+for exe in git jq sha256sum flock mktemp find sort cp mv cmp grep sed rm awk chmod timeout truncate; do command -v "$exe" >/dev/null || fail "Missing required command: $exe"; done
 ((BASH_VERSINFO[0] > 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 4))) || fail 'Bash 4.4+ required'
 [[ -d "$TARGET" && ! -L "$TARGET" ]] || fail "Project directory does not exist or is a symlink: $TARGET"
-TARGET=$(cd -- "$TARGET" && pwd -P)
+TARGET=$(CDPATH='' cd -- "$TARGET" && pwd -P)
 [[ "$TARGET" != '/' && "$TARGET" != "$HOME" ]] || fail 'Choose a specific project directory, not / or your home directory.'
 if [[ $ACTION != install && $BEND_CHOICE != retain ]]; then fail "Bend2 flags apply to installation and updates only"; fi
 if [[ $ACTION == install ]]; then
@@ -222,12 +222,19 @@ if [[ $ACTION == verify || $ACTION == remove ]]; then
     rm -- "$TARGET/$rel"
   done
   sed -i '/^<!-- Heimdall integration: begin -->$/,/^<!-- Heimdall integration: end -->$/d' "$TARGET/$instruction_file"
+  if [[ $(jq -r .root_agents "$MANIFEST") == appended && -s "$TARGET/$instruction_file" ]]; then
+    # Installation adds one separator newline before the managed block.
+    truncate -s -1 -- "$TARGET/$instruction_file"
+  fi
   if [[ $(jq -r .root_agents "$MANIFEST") == created ]] && \
        [[ ! -s "$TARGET/$instruction_file" || -z $(tr -d '[:space:]' <"$TARGET/$instruction_file") ]]; then
     rm -- "$TARGET/$instruction_file"
   fi
   if [[ $(jq -r .gitignore "$MANIFEST") == appended ]]; then
     sed -i '/^# Heimdall local execution evidence$/,/^\.work\/$/d' "$TARGET/.gitignore"
+    if [[ -s "$TARGET/.gitignore" ]]; then
+      truncate -s -1 -- "$TARGET/.gitignore"
+    fi
     if [[ $(jq -r .gitignore_created "$MANIFEST") == true ]] &&
        [[ -z $(tr -d '[:space:]' <"$TARGET/.gitignore") ]]; then
       rm -- "$TARGET/.gitignore"
@@ -495,6 +502,6 @@ for rel in "${DELETED[@]}"; do
   done
 done
 note "Installed ${#RELS[@]} files in $TARGET (instructions: $ACTIVE_AGENTS; Bend2: $([[ $BEND2 -eq 1 ]] && echo enabled || echo disabled))"
-note "Verify: cd '$TARGET' && bash .heimdall/install.sh --verify"
+printf 'Heimdall: Verify: cd -- %q && bash .heimdall/install.sh --verify\n' "$TARGET"
 note "Start locally: open '$TARGET' in Codex CLI, the IDE extension, or the ChatGPT desktop app"
 note "Codex web/Cloud: commit and push this repository, then open its connected remote version"
