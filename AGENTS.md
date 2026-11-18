@@ -15,6 +15,13 @@ Heimdall requirements and lifecycle records outside `docs/`.
 
 For bounded engineering delegation, use Codex's built-in `explorer` and `worker` roles. For independent review, prefer the project-scoped `heimdall_reviewer` (`.codex/agents/heimdall_reviewer.toml`) when installed; otherwise assign a separate `default` subagent an explicit read-only review task. Never assume a role label enforces read-only access or proves reviewer independence. Native Codex manages agent spawning; `scripts/factory` only observes lifecycle boundaries and validates evidence. **Only one active factory node may use a given Git worktree**. Use separate worktrees for simultaneous WRITE nodes and verify integration before acceptance; otherwise serialize nodes.
 
+For the Heimdall release repository, use GPT-6.2 Sol for reasoning-intensive
+work such as cross-module design, difficult debugging, and consequential
+reviews. Use GPT-6 Luna as the lower-cost default for focused exploration,
+routine verification, and well-scoped changes. When delegating demanding
+work, select Sol explicitly if the session supports a model override. Keep
+the configured reasoning defaults and honor any model the user specifies.
+
 ## Secret access and existing-project discovery
 
 Treat Heimdall credential metadata (`.heimdall/credential-names.json`) as **names only**, never a credential source. Never ask the user to paste API keys into agent chat or repo files. Do not read `.env`, `.env.*`, local tokens, cloud credential files, shell environment values, or private keys. Do not execute commands that print secrets (`env`, `printenv`, credential store dumps). This instruction reduces accidental reads; **it is not an OS security boundary**. An agent with unrestricted shell access and the same OS identity can still access readable files, environment variables, and processes. Actual value isolation requires a separate sandbox/identity and an outside-the-agent vault/proxy/tool that returns narrowly scoped results. See `docs/security/CREDENTIAL_BOUNDARY.md` in the Heimdall release.
