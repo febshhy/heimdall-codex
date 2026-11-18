@@ -13,22 +13,19 @@ Heimdall gives Codex a disciplined way to work in real codebases. Use it with Co
 
 ## Why Heimdall?
 
-A request that sounds small can change behavior in several places. A report-access rule, for example, may affect an API, an export, and a scheduled job.
+Heimdall is a project template for turning a request into a change your team can review and maintain. The goal is to preserve the behavior people depend on and make it possible to trace each important decision from the original request to the code and the checks that support it.
 
-Heimdall gives Codex three connected disciplines:
-
-1. **Trace before editing.** Inspect actual source paths, requirements, state, effects, and failure cases. Identify any unresolved dependencies.
-2. **Change only what the task needs.** Respect existing architecture, compare realistic alternatives, and keep structural cleanup separate when useful. Delegate only when dependencies justify it.
-3. **Verify what changed.** Relate claims to project checks, observed outcomes, and review. Report the scope each check covers.
+- **Start from the project’s contracts.** Trace the actual entry points, state, and side effects before choosing a change. A report-access rule may reach an API, an export, and a scheduled job. Follow each affected path and verify both allowed and denied access. [Walk through the access-rule example](marketing/HOW_IT_WORKS.md#example-a-shared-access-rule).
+- **Use the right method for each decision.** Requirements define the outcome. Software Design Thinking maps domain rules and effects. GUI Design Thinking models what people can see and do. Database guidance turns domain rules into storage constraints and recovery plans. These methods work with your project’s existing architecture and tools.
+- **Coordinate agents when the work has dependencies.** Codex handles a small task directly. For larger changes, Graph Protocol defines what each agent owns, what it receives, and what it must return before dependent work can start. Independent review checks delegated changes, and the factory tools validate recorded handoffs and Git and command evidence.
+- **Finish with evidence tied to the change.** Review the actual diff and test outcomes. For authorized repository delivery, verify the merge on the integration branch and clean up the task branch.
 
 <picture>
   <source media="(max-width: 640px)" srcset="marketing/heimdall-flow-mobile.svg">
   <img src="marketing/heimdall-flow.svg" alt="Four stages of engineering work connected by one route: Intent, Source paths, Focused change, and Evidence. Evidence records what was verified, including failures and unknowns.">
 </picture>
 
-The result is a change that is easier to inspect and maintain. [See how the method handles a shared access rule](marketing/HOW_IT_WORKS.md#example-a-shared-access-rule).
-
-**Learn the engineering behind it:** [Engineering playbook](marketing/ENGINEERING_PLAYBOOK.md) explains the contracts, state machines, functional core, dependency boundaries, recovery, and verification you can apply in your own code.
+The [engineering playbook](marketing/ENGINEERING_PLAYBOOK.md) shows how to apply these methods to a single change, from defining its contract through testing recovery.
 
 ## Start in an existing project
 
