@@ -104,7 +104,43 @@ Do not bypass required reviews, CI checks, or branch protection.
 
 Use the configured merge method and merge queue.
 
-## 5. Completion report
+## 5. Agent-led acceptance and merge
+
+The coordinator owns PR delivery. When remote delivery is authorized, carry it
+through merge and confirm the result. Routine PRs require independent agent
+review and passing checks. Skip a separate human sign-off where the host permits
+agent-led merge. Apply a repository's explicit policy and required host checks.
+
+Plan the PR work as dependencies with named outputs:
+
+- The author (coordinator for small tasks, or a bounded WRITE worker) hands off
+  the candidate commit, its scope, and relevant requirements.
+- A separate read-only reviewer inspects the candidate diff and returns findings
+  and a verdict tied to the reviewed commit. The coordinator verifies observed
+  test results. Review and test execution may run independently against the same
+  candidate. A subagent's verdict is review evidence, not a hosting-provider
+  approval under another person's identity.
+- The coordinator resolves findings, checks review and test evidence against the
+  current PR head, and confirms required host checks or merge-queue eligibility.
+  For delegated WRITEs, also compare the returned A/E/R records with the delegated
+  subgraph and validate the schema-3 factory record before acceptance.
+- The accepted head authorizes the merge node within the task's remote scope.
+  Use a head-checked merge or the configured merge queue. Observe the host's
+  merge result and record the PR URL and merge commit when available.
+
+In the delegated A/E/R plan, A carries these outputs along dependency edges.
+E covers wrong scope or base, missing evidence, and misread acceptance criteria.
+For each delegated node, R includes its bounded subgraph, applicable method,
+verification command, and reason for the work. Include the candidate commit in
+review and verification inputs. Give concurrent WRITE nodes separate worktrees.
+
+If the head changes, repeat review and verification for the new head. If the
+base changes, recheck the affected integration evidence against the current
+base or use the required merge queue. Fix actionable findings, rerun affected
+checks, and reevaluate the gate. Missing evidence or a host rule that prevents
+agent-led merge leaves the PR open. Report the blocking rule or failed check.
+
+## 6. Completion report
 
 Report the task identifier when it exists.
 
