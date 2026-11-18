@@ -13,7 +13,7 @@ Known product content + upstream legal GUI states + platform constraints
     → Read context, real content, audience, device/input and tokens
       → Define reading priority and presentation choices
         → Map every applicable state → visual variant
-          → Inspect accessibility and actual rendering
+          → Render affected states → inspect → adjust → rerender
             → Verified | Failed | Not tested → report
 ```
 
@@ -30,7 +30,10 @@ Known product content + upstream legal GUI states + platform constraints
 **Motion and 3D (conditional):** use compact reusable vector/parametric geometry with logical coordinates, transform/property animation and few meaningful keyframes. No PNG frame sequence, SVG-per-frame exports, bloated traced paths, duplicated per-frame shapes or unneeded Lottie. Prefer native motion; a specific format/player is optional. Genuine 3D must declare **PBR** (plausible material/light), **NPR** (intentional stylization), or justified hybrid; use compact meshes/materials, avoid per-frame raster/mesh exports, keep meaningful 3D interaction in upstream GUI/domain state. Check depth, legibility, input, reduced motion and static/2D alternative. For actual budgets and target testing use `../gui-design-thinking/references/RENDERING-AND-MOTION.md`.
 
 **Verification:** inspect actual rendering for affected states, sizes, and
-content. A spacing edit needs a focused layout check. Check keyboard and focus,
+content. For visual improvements and reviews, use the
+[visual improvement loop](references/VISUAL-IMPROVEMENT-LOOP.md) with the
+target's available runtime. A spacing edit needs a focused layout check.
+Check keyboard and focus,
 assistive-technology meaning, contrast, noncolor status, zoom/reflow, touch,
 and reduced motion where the change can affect them. Apply applicable web or
 native accessibility standards for the changed scope. Use swap/squint/real-content
