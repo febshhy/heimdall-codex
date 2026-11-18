@@ -58,12 +58,13 @@ Replace text in square brackets with your own context. These prompts are startin
 
 Use an independent reviewer for delegated WRITE work. Routine changes completed by the main agent do not need an extra reviewer. In Codex CLI, the reviewer inherits the parent session's permissions, so its instructions or agent TOML cannot make it read-only on their own. Set the session permission before starting the reviewer:
 
-1. Wait for the delegated WRITE work to finish and inspect the integrated diff.
-2. Run `/permissions` and select **Read-only**.
+1. Wait for the delegated WRITE work and any running shell commands to finish, then inspect the integrated diff.
+2. At the Codex CLI prompt, enter `/permissions` and press Enter to open the permissions picker. Select the **Read-only** profile and confirm that it is active before continuing. The picker may show a custom profile name instead; choose it only if your configuration defines it as read-only.
 3. Ask Codex to start `heimdall_reviewer` (or a separate `default` agent if it is unavailable) to inspect the final diff, relevant requirements, source, and tests. Tell it not to edit files and to report concrete findings and checks observed.
-4. Inspect the review result. If changes are needed, restore the prior permission mode, make them, then repeat the read-only review against the updated diff.
+4. Keep the session in read-only mode during review. If Codex requests approval for a write or command that could change files, deny it; report that check as unverified if it cannot be completed read-only.
+5. Inspect the review result. If changes are needed, enter `/permissions` again and restore the prior profile before editing. After the changes, repeat the review in read-only mode against the updated diff.
 
-The reviewer has a separate agent context but shares the project workspace. Read-only permissions prevent it from changing that workspace; they do not establish a separate OS identity. Do not treat review instructions or a clean review report as proof that required tests passed.
+The reviewer has a separate agent context but shares the project workspace. Read-only mode allows inspection; edits and commands outside that permission boundary require approval. Do not approve such requests during review. This mode does not establish a separate OS identity. Do not treat review instructions or a clean review report as proof that required tests passed.
 
 ### Specify a formal rule
 
