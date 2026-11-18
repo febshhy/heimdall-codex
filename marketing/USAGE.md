@@ -1,6 +1,6 @@
 # Use Heimdall on a real task
 
-**Tell Codex the outcome you need; Heimdall supplies the engineering procedure.** You do not need to choose a skill, design a task graph, or request extra agents for routine work.
+**Tell Codex the outcome you need. Heimdall supplies the engineering procedure.**
 
 [Overview](../README.md) · [Install Heimdall](SETUP.md) · [Understand the method](HOW_IT_WORKS.md)
 
@@ -24,7 +24,7 @@ Review the proposal. Then ask Codex to implement the agreed scope and report the
 
 ## Task examples
 
-Replace text in square brackets with your own context. These prompts are starting points; adapt them to the application's real requirements.
+Replace text in square brackets with your own context. Adapt each prompt to your application’s requirements.
 
 ### Fix a bug
 
@@ -56,21 +56,18 @@ Replace text in square brackets with your own context. These prompts are startin
 
 ### Independently review delegated changes
 
-Use an independent reviewer for delegated WRITE work. Routine changes completed by the main agent do not need an extra reviewer. In local Codex sessions (CLI, IDE extension, and the ChatGPT desktop app in Local or Worktree mode), the reviewer inherits the parent session's permissions, so its instructions or agent TOML cannot make it read-only on their own. Set the parent session to read-only before starting the reviewer:
+Use an independent reviewer for delegated WRITE work. In CLI, IDE, and desktop Local or Worktree sessions, set the session that launches the reviewer to read-only. Reviewer permissions come from that session.
 
 1. Wait for the delegated WRITE work and any running shell commands to finish, then inspect the integrated diff.
 2. Set the active session to read-only:
    - In Codex CLI, enter `/permissions` and press Enter to open the permissions picker. Select the **Read-only** profile and confirm that it is active before continuing.
    - In the Codex IDE extension, open the permissions control below the composer and select the **Read-only** profile. Confirm that it is active before continuing.
-   - In the ChatGPT desktop app's Codex view, open the permissions control below the composer and select a profile that is configured as read-only. If you use **Custom (config.toml)**, verify that its effective profile is `:read-only`; **Ask for approval** and **Approve for me** are workspace-write modes, not read-only.
-   - If the picker shows a custom profile name instead, choose it only if your configuration defines it as read-only.
+   - In the ChatGPT desktop app's Codex view, open the permissions control below the composer and select a profile that is configured as read-only. If you use **Custom (config.toml)**, verify that its effective profile is `:read-only`.
 3. Ask Codex to start `heimdall_reviewer` (or a separate `default` agent if it is unavailable) to inspect the final diff, relevant requirements, source, and tests. Tell it not to edit files and to report concrete findings and checks observed.
 4. Keep the session in read-only mode during review. If Codex requests approval for a write or command that could change files, deny it; report that check as unverified if it cannot be completed read-only.
 5. Inspect the review result. If changes are needed, restore the prior profile using the same CLI command or permission control before editing. After the changes, repeat the review in read-only mode against the updated diff.
 
-The reviewer has a separate agent context but shares the project workspace. Read-only mode allows inspection; edits and commands outside that permission boundary require approval. Do not approve such requests during review. This mode does not establish a separate OS identity. Do not treat review instructions or a clean review report as proof that required tests passed.
-
-Codex CLI, the IDE extension, and the ChatGPT desktop app can use the same project files, including `.codex/agents/` and `.agents/skills/`, when opened on the same repository. They are separate sessions: set read-only permissions in the session that will start the reviewer. The available profiles depend on client configuration and workspace policy. This procedure covers local and worktree sessions; Cloud tasks use a remote environment and do not expose the local Codex sandbox controls. A Cloud task or reviewer prompt alone does not guarantee read-only access.
+For Cloud review, verify the remote environment’s effective permissions before relying on read-only isolation. Check required test outcomes separately from the review verdict.
 
 ### Specify a formal rule
 
@@ -91,7 +88,5 @@ git status --short
 git diff --stat
 git diff --check
 ```
-
-A passing check does not establish correctness outside its tested scope. Heimdall does not replace your team's deployment and review controls.
 
 **[Install or recover Heimdall](SETUP.md)** · [Understand the evidence model](HOW_IT_WORKS.md#what-counts-as-evidence)
