@@ -32,7 +32,10 @@ Use `sudo` only to install system packages. **Run Heimdall as your normal user.*
 
 ## Get the source
 
-Choose one method to obtain Heimdall's source. Keep the checkout or extracted directory **outside your application repository**. All three methods supply the same `HEIMDALL_SRC` variable used in the installation steps below.
+Choose one method to obtain the Heimdall template. You can name the template
+and application directories independently. Keep the template outside your
+application repository and set `HEIMDALL_SRC` to its actual root. Pass your
+application's Git root to `--project` for an existing project.
 
 | Method | Use it when |
 | --- | --- |
