@@ -29,6 +29,11 @@ Find exact law/requirement IDs first; otherwise search smallest likely approved 
 
 ## D — Discover, then C or B
 
+For a clear request with no governing record, use the user's stated behavior
+as the task contract. Record a concise acceptance check in the task context.
+Ask only about unresolved choices that materially affect behavior, scope, or
+irreversible effects.
+
 ```text
 Authorized intent / actors / stakes / constraints
   → Inspect accepted behavior + relevant source/tests/observations

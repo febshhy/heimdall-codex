@@ -22,15 +22,19 @@ Prefer one primary check per claim at a stable boundary; do not duplicate a clai
 | Check | Select when |
 | --- | --- |
 | Conformance | Approved requirement/external contract or a proven Bend model must match production; compare with model when applicable. |
-| Behavioral | Observable module `index` or other stable boundary behavior. |
+| Behavioral | Observable behavior through a supported entry point, such as a CLI, HTTP endpoint, public API, or UI action. |
 | Smoke | One critical end-to-end path per thin slice. |
 | Regression | Reproduce a real bug before its fix; retain its check. |
 | Fuzz/property | Invariants, state sequences, parsers or combinatorial domains; define property, generators, reproducible seeds, bounded runtime. Bend is optional. |
 | Unit | Important pure-decision edge cases that boundary tests cannot isolate efficiently; say why. |
 
-**Guards:** link each check to a requirement, invariant, meaningful claim/card ID or defect. Review orphan tests and unverified requirements; lack of a card ID alone never justifies deleting a useful regression. Test through module `index` unless internals are a required contract. Do not mock the module under test. Stand-ins are only for external boundaries, and cannot establish behavior of the real boundary.
+**Guards:** link each check to a requirement, invariant, meaningful claim/card ID or defect. Review orphan tests and unverified requirements; lack of a card ID alone never justifies deleting a useful regression. Test through supported entry points unless internals are a required contract. Do not mock the module under test. Stand-ins are only for external boundaries, and cannot establish behavior of the real boundary.
 
 ## Execution and reporting
+
+Distinguish a check that observed a product failure from a check that could
+not exercise the product because of missing prerequisites, permissions, or
+environment errors. Record the latter as inconclusive and name the blocker.
 
 ```text
 Read AGENTS.md Commands + actual repository configuration
@@ -54,7 +58,7 @@ Check affected real GUI states in an available browser/native environment; consu
 
 ```text
 Reviewed LAWS.bend + actual PROOF.bend
-  → scripts/factory proof: passed for the law/proof pair (not smoke)
+  → scripts/factory proof: repository-wide proof check includes this pair
     → Production implementation
       → Model-to-production conformance + unhappy/effect paths
 ```

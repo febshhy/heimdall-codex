@@ -15,7 +15,7 @@ Intent + approved scope
     → Expose quantified semantics, preconditions, exclusions, counterexamples
       → Operator reviews exact laws/assumptions
         → Accepted law → Write PROOF.bend + pure model
-          → scripts/factory proof (actual pair, pinned Bend)
+          → scripts/factory proof (repository-wide check, pinned Bend)
             → Pass → Production code → Conformance + effect/integration tests
             → Fail → Correct witness/non-normative model, or request law amendment
 ```
@@ -25,3 +25,7 @@ Intent + approved scope
 **Failure/stop:** Bend unavailable, model unfaithful or proof required but infeasible → report blocked/request explicit rescope, never substitute tests silently. A smoke proof is installer-only. A law can be vacuous; test counterexamples and unintended implementations. A compiler/model/law change invalidates dependent evidence. Bind conformance to the actual application implementation, representation conversions, error paths and effects. Separate pure decisions from IO/time/network/rendering unless modeled explicitly.
 
 **Output:** law → model/proof verdict → implementation path → conformance checks; report observed results, assumptions, unmodeled scope and risks. Keep proof assets compact and readable; no automatic writes to `docs/`.
+
+The proof command checks every application law/proof pair under
+`proofs/<rule>/`. Record which pair supports the selected requirement and
+identify the failing pair if the repository-wide check fails.

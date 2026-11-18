@@ -29,6 +29,15 @@ Known product content + upstream legal GUI states + platform constraints
 
 **Motion and 3D (conditional):** use compact reusable vector/parametric geometry with logical coordinates, transform/property animation and few meaningful keyframes. No PNG frame sequence, SVG-per-frame exports, bloated traced paths, duplicated per-frame shapes or unneeded Lottie. Prefer native motion; a specific format/player is optional. Genuine 3D must declare **PBR** (plausible material/light), **NPR** (intentional stylization), or justified hybrid; use compact meshes/materials, avoid per-frame raster/mesh exports, keep meaningful 3D interaction in upstream GUI/domain state. Check depth, legibility, input, reduced motion and static/2D alternative. For actual budgets and target testing use `../gui-design-thinking/references/RENDERING-AND-MOTION.md`.
 
-**Verification:** check focus, keyboard, assistive-technology meaning, noncolor status, WCAG 2.2 AA where applicable on web, native platform standards elsewhere, zoom/reflow, contrast, localization, long text, touch, reduced motion and representative real/edge data. Use swap/squint/real-content checks in `references/SLOP.md`. Inspect actual rendered output at relevant sizes/modalities; screenshots prove appearance only, not behavior, accessibility or animation quality. Measure motion where material; report untested environments honestly. For full visual work deliver state-to-presentation mapping, tokens, decisions, evidence and `assets/DESIGN_CARD.md` as appropriate. Create end-user `docs/` artifacts only on explicit authorized documentation task; otherwise report proposals in the response.
+**Verification:** inspect actual rendering for affected states, sizes, and
+content. A spacing edit needs a focused layout check. Check keyboard and focus,
+assistive-technology meaning, contrast, noncolor status, zoom/reflow, touch,
+and reduced motion where the change can affect them. Apply applicable web or
+native accessibility standards for the changed scope. Use swap/squint/real-content
+checks in `references/SLOP.md` when helpful. Screenshots verify appearance.
+Use interaction checks and measurements for material behavior and motion.
+Report untested environments. For full visual work deliver state mappings,
+tokens, decisions, and evidence as appropriate. Write end-user `docs/` only
+for an explicitly authorized documentation task.
 
 **Guards:** prefer existing stack and tokens; no unnecessary design system for one edit, no fabricated claims/metrics/guarantees, no automatic visual-design agent and no visual style bans based only on fashion. A delegated worker follows the existing A/E/R authority boundary.

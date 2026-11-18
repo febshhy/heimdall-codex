@@ -20,8 +20,8 @@ Each delegated WRITE must be independently reviewed and scoped to exclusive path
 ## Example: Bend scoped proof rule
 
 ```text
-N1 WRITE proofs/rule.bend
-N2 RUN scripts/factory proof ...               depends N1; gate=proof verifies N1
+N1 WRITE proofs/<rule>/LAWS.bend and proofs/<rule>/PROOF.bend
+N2 RUN scripts/factory proof                   depends N1; gate=proof verifies N1
 N3 WRITE src/rule.go                      depends N2; proof_gate=N2
 N4 RUN conformance tests + review        depends N3; verifies N3
 ```
@@ -30,7 +30,11 @@ N4 RUN conformance tests + review        depends N3; verifies N3
 
 Autonomous within an authorized task: reading, planning, local edits, running repo tests, scoped delegated work, local documentation, fixing review failures.
 
-Require approval: deployments, remote writes, deletion/migration of production data, publishing, external credentials transfer, changing security policy, materially ambiguous product behavior. Report pending approval rather than claiming end-to-end delivery.
+A request to push or deliver authorizes the routine PR path through verified
+trunk merge and cleanup unless the user limits scope. Follow the repository-work
+Git and PR procedure. Obtain authorization for effects outside that scope,
+including deployments, releases, production data changes, and security policy
+changes. Resolve material product ambiguity through the requirements skill.
 
 ## State
 
