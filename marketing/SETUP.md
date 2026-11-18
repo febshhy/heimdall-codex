@@ -1,6 +1,6 @@
 # Install Heimdall
 
-**Download Heimdall once, preview the changes to your project, apply the approved plan, and start Codex.** Project installation keeps the engineering instructions with your code. Global installation makes shared guidance available to your Linux user.
+**Download Heimdall once, preview the changes to your project, apply the approved plan, and start Codex.** Installation keeps the engineering instructions with your code.
 
 [Overview](../README.md) · [First task](USAGE.md#first-session) · [How it works](HOW_IT_WORKS.md)
 
@@ -92,9 +92,6 @@ Regardless of the method, inspect the source before running scripts. Teams can s
 | --- | --- |
 | Existing team repository | [Existing project](#existing-project) |
 | New application directory | [New project](#new-project) |
-| Personal guidance shared across repositories | [Global installation](#global-installation) |
-
-Use one scope that matches your needs. Project and global instructions may both exist, but their ownership should be clear.
 
 ## Existing project
 
@@ -136,18 +133,6 @@ bash .heimdall/install.sh --verify
 ```
 
 Setup refuses unsafe nested repositories and populated directories without Git.
-
-## Global installation
-
-For shared user-level guidance:
-
-```bash
-bash "$HEIMDALL_SRC/install.sh" --global --integrate-agents --dry-run
-bash "$HEIMDALL_SRC/install.sh" --global --integrate-agents
-bash "$HOME/.local/share/heimdall/release/install.sh" --global --verify
-```
-
-Review the preview before applying. Global installation writes shared guidance to the default Codex home. Use project installation to add a project-specific reviewer profile.
 
 ## Start Codex
 
@@ -200,11 +185,7 @@ Resolve any reported conflicts manually. Inspect leftover directories and Git me
 Remove a current installation when appropriate:
 
 ```bash
-# From the application root:
 bash .heimdall/install.sh --remove
-
-# Or, for a global installation:
-bash "$HOME/.local/share/heimdall/release/install.sh" --global --remove
 ```
 
 ## Resolve setup problems
