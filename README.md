@@ -5,7 +5,7 @@
 [![Codex](https://img.shields.io/badge/for-Codex-775726?style=flat-square&labelColor=202A30)](https://developers.openai.com/codex/ide)
 [![MIT license](https://img.shields.io/badge/license-MIT-775726?style=flat-square&labelColor=202A30)](LICENSE)
 
-Heimdall gives Codex a disciplined way to work in real codebases. Use it with Codex CLI, the Codex IDE extension, the Codex desktop app, or Codex Cloud at [chatgpt.com/codex](https://chatgpt.com/codex/) to trace affected paths, make focused changes, and show evidence behind the result. It works with your existing language, framework, and tests.
+Heimdall gives Codex a disciplined way to work in real codebases. Use it with Codex CLI, the Codex IDE extension, Codex in the ChatGPT desktop app (Local, Worktree, or Cloud), or Codex on the web at [chatgpt.com/codex](https://chatgpt.com/codex/) to trace affected paths, make focused changes, and show evidence behind the result. It works with your existing language, framework, and tests.
 
 ![A dimensional illustration of a guarded hall beside a bridge crossing a misty gorge, inspired by Heimdall’s watch at Bifröst.](marketing/heimdall-watch.jpg)
 
@@ -32,7 +32,7 @@ The result is a change that is easier to inspect and maintain. [See how the meth
 
 ## Start in an existing project
 
-Run the installer commands in **Linux Bash** or **WSL on Windows**. You need Git, Bash 4.4+, Python 3.9+, `jq`, and a signed-in Codex client. Codex CLI is optional; you can use the IDE extension, desktop app, or Codex Cloud instead. Cloud tasks use a connected remote repository and a prepared environment. [Check the setup prerequisites](marketing/SETUP.md#prerequisites) and [Cloud steps](marketing/SETUP.md#start-codex).
+Run the installer commands in **Linux Bash** or **WSL on Windows**. You need Git, Bash 4.4+, Python 3.9+, `jq`, and a signed-in Codex client. Codex CLI is optional; you can use the IDE extension, Codex desktop app, or Codex on the web. In the desktop app, choose Local or Worktree for local project files, or Cloud for a remote task. [Check the setup prerequisites](marketing/SETUP.md#prerequisites) and [app setup steps](marketing/SETUP.md#start-codex).
 
 **1. Get Heimdall outside your application repository.**
 
@@ -55,7 +55,7 @@ bash "$HOME/tools/heimdall-codex/scripts/heimdall" start --project . --integrate
 bash .heimdall/install.sh --verify
 ```
 
-Open the project in Codex CLI with `codex`, or in the IDE extension or desktop app for a local session. For Codex Cloud, connect the repository at [chatgpt.com/codex](https://chatgpt.com/codex/) and follow the [Cloud setup steps](marketing/SETUP.md#start-codex).
+Open the project in Codex CLI with `codex`, in the IDE extension, or in the ChatGPT desktop app and choose Local or Worktree. For Codex on the web, connect the repository at [chatgpt.com/codex](https://chatgpt.com/codex/) and follow the [app setup steps](marketing/SETUP.md#start-codex).
 
 The first setup command previews the installation. Apply checks that the saved plan still matches the project. Heimdall preserves unrelated instructions and does not write to your project's `docs/` directory during installation.
 
