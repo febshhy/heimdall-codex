@@ -13,9 +13,9 @@ Heimdall gives Codex a disciplined way to work in real codebases. Use it with Co
 
 ## Why Heimdall?
 
-Say you ask Codex to restrict access to confidential reports. It updates the reports page and the tests pass, but people can still get the same reports through an export or a scheduled email. A careful prompt or code review can catch that. Someone still has to know where to look.
+An AI-built checkout can work in a demo and charge a customer twice when a payment times out and gets retried. At that point, the team has to work out which system owns the payment state, what the customer actually paid, and whether a rollback would help or make things worse. The same team has to maintain that code after the chat ends.
 
-Heimdall gives Codex a way to find those paths before editing. It traces how reports are read, exported, and sent, then uses the project’s tests to check the access rule wherever it applies. If agents split the work, each knows what it owns and what to hand off for review. [See the report-access example](marketing/HOW_IT_WORKS.md#example-a-shared-access-rule).
+Prompts, CI, and code review help. They work best when the team has already made the failure cases explicit. Heimdall gives Codex a process for doing that in the repository itself. Trace the existing code, agree on what must hold, make a bounded change, and show which checks support it. When several agents work on the change, each has a defined scope and hands off evidence the next agent can inspect. [See how to handle retries and uncertain outcomes](marketing/ENGINEERING_PLAYBOOK.md#5-recovery--design-for-duplicate-and-uncertain-outcomes).
 
 <picture>
   <source media="(max-width: 640px)" srcset="marketing/heimdall-flow-mobile.svg">
