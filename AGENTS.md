@@ -133,9 +133,14 @@ For actual UI construction or consequential review, route behavior/state to `$gu
 
 ## Agent-led Git delivery
 
+Use trunk-based development. Branch from current trunk (`main` in this repo),
+keep task branches short-lived, and integrate through a PR. Give concurrent
+writers separate worktrees. The coordinator owns cleanup after merge.
+
 When asked to push or deliver repository changes, the coordinator treats that
 as authorization for the routine PR path through merge and confirmation, unless
-the user explicitly limits delivery. Routine PRs need independent agent review and passing checks.
+the user explicitly limits delivery. Routine PRs need independent agent review
+and passing checks.
 They do not need a human approval when hosting rules permit agent-led merge.
 Read the [Git and Pull-Request Procedure](.agents/skills/repository-work/references/GIT_AND_PR.md)
 for the integration branch (default `main`), evidence dependencies, and merge
@@ -144,6 +149,10 @@ is an intermediate step. Confirm the merge into the integration branch, then
 remove task-owned branches that are safe to delete. Create tags only for an
 authorized release or tagging task. If host policy blocks an agent-led merge,
 report the blocker and leave the PR open.
+
+Before reporting delivery complete, verify the merge commit is on trunk and
+check both local and remote refs for the task branch. A queued merge, an open
+PR, or a task branch still awaiting safe cleanup means delivery is pending.
 
 <!-- Heimdall Bend2: begin -->
 ## Bend 2 law-first specification (when selected and available)

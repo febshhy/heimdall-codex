@@ -2,7 +2,9 @@
 
 ## 1. Workspace and branches
 
-Use the integration branch defined in `AGENTS.md` or repository policy. If none is defined, treat `main` as the default integration branch.
+Use trunk-based development. Use the integration branch defined in `AGENTS.md`
+or repository policy, defaulting to `main`. Start new task branches from the
+current remote trunk. Keep each task branch only as long as delivery requires.
 
 Do not commit or push directly to the integration branch during ordinary task work.
 
@@ -10,9 +12,7 @@ Use the assigned branch and workspace when they exist.
 
 Use one short-lived branch for one reviewable task.
 
-Use `agent/<task-id>-<short-slug>` when the task has an identifier.
-
-Use `agent/<short-slug>` when the task has no identifier.
+Use the configured branch prefix. Include the task identifier when available.
 
 Use one active writer for one workspace.
 
@@ -128,6 +128,9 @@ Plan the PR work as dependencies with named outputs:
 - The accepted head authorizes the merge node within the task's remote scope.
   Use a head-checked merge or the configured merge queue. Observe the host's
   merge result and record the PR URL and merge commit when available.
+- The coordinator takes the merge result into the cleanup node. That node
+  returns the verified trunk commit and the disposition of each task-owned
+  branch and worktree. Wait for queued merges before starting cleanup.
 
 In the delegated A/E/R plan, A carries these outputs along dependency edges.
 E covers wrong scope or base, missing evidence, and misread acceptance criteria.
@@ -154,6 +157,12 @@ fast-forward it when safe. Remove the local task branch and any task-created
 worktree only after checking for unrelated or uncommitted work. If cleanup would
 discard work or affect another task, preserve the branch and report the reason.
 Create tags only when the task explicitly authorizes a release or tag.
+
+Check local refs and query the remote directly after cleanup. Confirm the task
+branch is absent on both, and report any cleanup blocker with its ref. For an
+older branch, verify its tip against a merged PR and check for worktrees and
+dependent PRs before retiring it. If a squash merge left unique commit IDs,
+verify that the merged PR covered the branch tip before deleting the local ref.
 
 ## 7. Completion report
 
