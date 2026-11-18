@@ -13,12 +13,13 @@ Heimdall gives Codex a disciplined way to work in real codebases. Use it with Co
 
 ## Why Heimdall?
 
-Heimdall is a project template for turning a request into a change your team can review and maintain. The goal is to preserve the behavior people depend on and make it possible to trace each important decision from the original request to the code and the checks that support it.
+A team asks Codex to make confidential reports visible only to authorized members. The patch filters the reports page and adds a passing test. The export endpoint still serves the full report, and a scheduled job still emails it. The patch looks ready until someone traces the other ways a report leaves the system.
 
-- **Start from the project’s contracts.** Trace the actual entry points, state, and side effects before choosing a change. A report-access rule may reach an API, an export, and a scheduled job. Follow each affected path and verify both allowed and denied access. [Walk through the access-rule example](marketing/HOW_IT_WORKS.md#example-a-shared-access-rule).
-- **Use the right method for each decision.** Requirements define the outcome. Software Design Thinking maps domain rules and effects. GUI Design Thinking models what people can see and do. Database guidance turns domain rules into storage constraints and recovery plans. These methods work with your project’s existing architecture and tools.
-- **Coordinate agents when the work has dependencies.** Codex handles a small task directly. For larger changes, Graph Protocol defines what each agent owns, what it receives, and what it must return before dependent work can start. Independent review checks delegated changes, and the factory tools validate recorded handoffs and Git and command evidence.
-- **Finish with evidence tied to the change.** Review the actual diff and test outcomes. For authorized repository delivery, verify the merge on the integration branch and clean up the task branch.
+Teams already use prompts, repository instructions, CI, and pull-request review to catch gaps like this. A prompt can ask Codex to check every caller. CI can verify the paths its tests cover. Review can catch a missing path if someone knows to look for it. The work of connecting the request to every affected path still has to happen, and a green check gives reviewers little visibility into that search.
+
+**Heimdall makes that work part of the repository’s engineering process.** The goal is to carry an approved change from intent to implementation with enough evidence for someone else to review the result. For the report rule, that means tracing how reports are read, exported, and delivered, locating where authorization belongs, and checking both allowed and denied access on the affected paths. [Walk through the access-rule example](marketing/HOW_IT_WORKS.md#example-a-shared-access-rule).
+
+The template gives Codex shared methods for requirements, domain and UI behavior, data, and verification. Codex handles small changes directly. When work spans agents, Graph Protocol makes ownership, inputs, and required outputs explicit. The coordinator checks the actual diff and test results, and delegated code changes get independent review. Later sessions can follow the same process using the project’s own tools and conventions.
 
 <picture>
   <source media="(max-width: 640px)" srcset="marketing/heimdall-flow-mobile.svg">
