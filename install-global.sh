@@ -365,4 +365,4 @@ committed=1
 note "Installed ${#RELS[@]} files for the current user."
 note 'Verify: bash ~/.local/share/heimdall/release/install-global.sh --verify'
 note 'New project: bash ~/.local/share/heimdall/release/install.sh --project .'
-note 'Start Codex in your project: codex'
+note 'Start Codex in your project with the CLI, IDE extension, or desktop app.'

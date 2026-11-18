@@ -8,7 +8,7 @@
 
 Run the installer in **Linux Bash**. On Windows, use **WSL**; these are not Command Prompt or PowerShell commands. Native Windows installation is not provided.
 
-You need Bash 4.4+, Python 3.9+, Git, `jq`, and standard Linux tools such as `flock`, `sha256sum`, `timeout`, `find`, `sort`, and core utilities. Install and authenticate [Codex CLI](https://github.com/openai/codex) separately.
+You need Bash 4.4+, Python 3.9+, Git, `jq`, and standard Linux tools such as `flock`, `sha256sum`, `timeout`, `find`, `sort`, and core utilities. You also need a signed-in Codex client: [Codex CLI](https://github.com/openai/codex), the [Codex IDE extension](https://developers.openai.com/codex/ide), or the Codex desktop app. The CLI is optional.
 
 Check the main tools:
 
@@ -17,8 +17,9 @@ bash --version
 python3 --version
 git --version
 jq --version
-codex --version
 ```
+
+If you use Codex CLI, check it with `codex --version`. If you use the IDE extension or desktop app, install and sign in to that client instead; no Codex CLI command is needed.
 
 For Ubuntu or Debian, install the common system dependencies if missing:
 
@@ -147,12 +148,20 @@ Review the preview before applying. Global installation does not modify applicat
 
 ## Start Codex
 
-After project installation, open the target repository and run:
+After project installation, open the target repository in one of these Codex clients. Trust the project so Codex can load its project-scoped `.codex/config.toml` settings.
+
+**Codex CLI:**
 
 ```bash
 cd /path/to/your-project
 codex
 ```
+
+**Codex IDE extension:** Install and sign in to the [Codex extension](https://developers.openai.com/codex/ide) in VS Code or a supported editor. Open the target repository, then open the Codex sidebar and start a chat.
+
+**Codex desktop app:** Open the app, choose the target repository as a local project, and start a chat. Keep the project in a local environment when you want Codex to use its checked-in files, local tools, and project configuration.
+
+The installer itself still needs Linux Bash or WSL and the prerequisites above, even when you use the IDE extension or desktop app. Run its commands from that Bash environment; the Codex client does not need the CLI installed.
 
 For an existing codebase, Codex can use `$project-adoption` and `$software-design-thinking` to inspect real source and trace relevant execution paths. The installer does not invent architecture graphs or historical decisions. [Start with a read-only task](USAGE.md#first-session).
 
@@ -224,4 +233,3 @@ bash "$HEIMDALL_SRC/scripts/heimdall" start --project . --with-bend2 --apply
 Use a trusted Bend 2 executable. Approved `LAWS.bend` specify the selected formal behavior, while `PROOF.bend` supplies proof evidence for the model. Production still needs conformance checks. The smoke proof only checks the tool. [Read the proof workflow](../proofs/README.md).
 
 **[Try a task](USAGE.md)** · [Understand the method](HOW_IT_WORKS.md) · [Back to Heimdall](../README.md)
-s

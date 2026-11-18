@@ -496,4 +496,4 @@ for rel in "${DELETED[@]}"; do
 done
 note "Installed ${#RELS[@]} files in $TARGET (instructions: $ACTIVE_AGENTS; Bend2: $([[ $BEND2 -eq 1 ]] && echo enabled || echo disabled))"
 note "Verify: cd '$TARGET' && bash .heimdall/install.sh --verify"
-note "Start:  cd '$TARGET' && codex"
+note "Start:  open '$TARGET' in Codex CLI, the IDE extension, or the desktop app"
