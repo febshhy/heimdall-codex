@@ -190,6 +190,15 @@ No hidden state                 same (S, In, ρ) ⇒ same result: replay, fresh 
 
 If the graph fails under swapped R, it has a hidden dependency. Stand-ins verify the graph, not the boundary. Confidence is not proof.
 
+For consequential changes, trace a real entry point through the decision,
+effect executor, and relevant failure or recovery path. Check that the code
+matches the modeled owners, transitions, and effects. Tie each material
+invariant to a check and record its outcome at the inspected revision. For
+example, trace installer apply from saved-plan validation through the write
+journal, then exercise interruption and recovery using an existing journal
+in a disposable project. For a small change, one focused trace and check
+may be enough. Keep source inspection and runtime results distinct.
+
 ## 15. Iteration
 
 Build a thin end-to-end slice early. On new knowledge or a changed requirement: update the graph, then propagate through §2–14.

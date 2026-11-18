@@ -67,15 +67,18 @@ A system that names colors but not surfaces is a palette, not a vocabulary.
 ```text
 Class       Holds                                       Home
 Domain      data the server owns                        Remote<T>
-Navigation  where the person is                         URL
-View        filter, sort, tab, selection, expanded      URL if shareable, else local S
+Navigation  where the person is                         platform navigation state
+View        filter, sort, tab, selection, expanded      local S or supported restoration state
 Draft       input not yet committed                     (base, draft)
 Platform    focus, scroll, caret, pointer, animation    P
 ```
 
 - One owner per datum. Others read or request.
 - Derived never stored: `dirty = draft ≠ base`, `empty = |items| = 0`, `canSubmit = valid ∧ ¬Submitting`.
-- Shareable or restorable ⇒ URL. Reload, back, and a deep link reproduce the view.
+- Keep shareable or restorable state in the target's supported mechanism,
+  such as a web URL, a mobile navigation stack or saved state, or desktop
+  window and session state. Define what back, relaunch, restoration, and
+  external links reproduce where those actions are supported.
 - Draft ≠ domain. Edit a copy, commit explicitly.
 - State lives at the lowest common owner of its readers.
 - Persisted client state is versioned and parsed on read.
@@ -146,7 +149,9 @@ pointer       Rest | Hover | Pressed                P
 focus         Blur | Focus | FocusVisible           P
 ```
 
-List the illegal products (Disabled × Pressed, ReadOnly × Editing). Every legal product is styled. None is left to the browser default.
+List the illegal products (Disabled × Pressed, ReadOnly × Editing). Every legal
+product has a defined presentation. Retain platform defaults when they meet
+the interaction, accessibility, and visual contract.
 
 ## 7. Voids
 
@@ -161,11 +166,13 @@ Partial   Ready(T), field absent     show T, mark the absent field in place
 Stale     Refreshing(T) | Failed(E,T)  keep T, mark age or failure, never blank
 Error     Failed(E)                  what failed, next to it, with a retry move
 Denied    Denied                     unreachable preferred; else the move to gain access
-Offline   no connectivity            show cached, queue moves, mark pending
+Offline   no connectivity            show permitted cached data; explain available actions
 ```
 
 - Loading appears after delay d and, once shown, holds for at least m (d ≈ 200 ms, m ≈ 400 ms).
 - Resolving a void causes no layout shift.
+- Queue offline actions only when the product supports deferred execution.
+  Show pending status and preserve the domain's retry and conflict rules.
 - A surface with one designed state and four undesigned ones is 20% designed.
 
 ## 8. Needs
@@ -175,13 +182,17 @@ Offline   no connectivity            show cached, queue moves, mark pending
 - Unmet need ⇒ the move is absent, not a runtime branch.
 - No selection is a different node, not an empty pane.
 - Disabled is a last resort and carries a visible reason.
-- Viewport unmet ⇒ re-route (pane becomes drawer). Never squeeze.
+- When available space cannot meet the layout needs, choose a supported
+  reflow or navigation alternative. If it changes how people reach controls,
+  define the corresponding navigation and focus transitions.
 - A deep link is input: check the target's needs.
 - Unreachable beats reachable and broken.
 
 ## 9. Boundary
 
-Input enters at the control, and from URL, storage, server, clipboard, and drag and drop.
+Input enters through controls and applicable external boundaries, such as
+links, launch arguments, restored state, server responses, clipboard, or drag
+and drop.
 
 ```text
 raw → parse → trusted
@@ -191,7 +202,8 @@ raw → parse → trusted
 - Validate on commit (blur or Enter), not per keystroke. Once an error shows, re-validate on change and clear it when fixed. Submit validates all and focuses the first invalid.
 - Never discard input on failure. Keep the draft across error, navigation, and reload when retyping is costly.
 - Normalize (trim, case, whitespace, Unicode) in the parse, not the view. IME composition is not input until committed. Paste takes the same parse as typing.
-- URL and storage are untrusted: parse, version, fall back to the initial state on failure.
+- Parse untrusted navigation inputs and versioned stored state at the boundary.
+  Define the safe fallback for invalid or unsupported input.
 
 ## 10. Effects
 
@@ -214,7 +226,9 @@ Focus, overlays, scroll, and selection are resources: one owner, acquire, releas
 - Overlay opens ⇒ focus enters, contained while modal. Escape and the close move release. Focus returns to the origin, or a defined successor if the origin is gone.
 - The focused element is removed ⇒ focus moves to the next sibling, else the parent. Never silently to the document.
 - Route change ⇒ focus the new surface's heading and announce it.
-- Back and forward restore scroll. Live updates never jump scroll. New content out of view is announced, not injected.
+- When navigation restores a view, restore its scroll position where applicable.
+  Keep the reading position stable during live updates. Announce new content
+  outside the current view when relevant to the task.
 - Toasts take no focus, are announced politely, and are never the only path to a move.
 - Submit with errors ⇒ focus the first invalid field.
 
@@ -230,7 +244,7 @@ Timing        delay before Loading, minimum hold, debounce, timeout, retry
 Order         duplicate, out-of-order, cancelled, late result after leaving
 Interrupt     Escape, blur, back, navigate away, close tab with a dirty draft
 Focus         after open, close, delete, submit, error, route change
-Persistence   reload, back and forward, deep link, second tab, offline
+Persistence   supported back/forward, relaunch, restore, links, concurrent views, offline
 Feedback      acknowledge ≤ 100 ms, progress > 1 s, completion, failure, undo
 Content       0, 1, N, huge, long text, missing, RTL, locale, time zone
 Environment   viewport, touch, zoom, contrast, reduced motion, theme
@@ -269,18 +283,24 @@ Claim                          Check
 Invalid states don't exist     types reject them: variants, no Boolean pairs
 update preserves Inv           properties over generated event sequences
 δ is total                     every (state, event) cell has an outcome
-view = render(S)               same S ⇒ same view; reload and restore reproduce it
-No hidden state                fresh load, second tab, replay: same S ⇒ same view
+view = render(S)               same S and platform context ⇒ same view; test supported restore paths
+No hidden state                replay from explicit inputs; compare fresh instances where supported
 Every void is designed         render each void in each region
 Graph independent of N         swap N: day one, year three, least access, small and slow
 Results are safe               replay stale, duplicate, reordered, delayed, cancelled
 Keyboard and AT parity         finish every move by keyboard only; screen-reader pass
 Focus is never lost            open and close each overlay; delete the focused item; submit with errors
-Extremes hold                  0, 1, 10⁵ items; long text; RTL; 200% zoom; reduced motion
+Extremes hold                  relevant data sizes, long text, RTL, target text scaling and reduced motion
 Change is local                each plausible change touches ≤ 1 module
 ```
 
 Swap N four ways: day one (empty account), year three (10⁵ records, titles twice as long as the mock), least access (read-only member), small and slow (one hand, poor network, reduced motion). If the design only works with ideal data, it is a screenshot.
+
+Verify affected states in the browser, mobile build, or native desktop runtime
+that the project targets. Use the Visual Design
+[improvement loop](../visual-design/references/VISUAL-IMPROVEMENT-LOOP.md) for
+render checks and use interaction checks for transitions, focus, and recovery.
+Record any target that could not be verified.
 
 ## 16. Iteration
 
