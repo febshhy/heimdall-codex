@@ -133,8 +133,9 @@ For actual UI construction or consequential review, route behavior/state to `$gu
 
 ## Agent-led Git delivery
 
-For authorized PR delivery, the coordinator runs the workflow through merge and
-confirmation. Routine PRs need independent agent review and passing checks.
+When asked to push or deliver repository changes, the coordinator treats that
+as authorization for the routine PR path through merge and confirmation, unless
+the user explicitly limits delivery. Routine PRs need independent agent review and passing checks.
 They do not need a human approval when hosting rules permit agent-led merge.
 Read the [Git and Pull-Request Procedure](.agents/skills/repository-work/references/GIT_AND_PR.md)
 for the integration branch (default `main`), evidence dependencies, and merge

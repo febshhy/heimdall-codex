@@ -106,8 +106,9 @@ Use the configured merge method and merge queue.
 
 ## 5. Agent-led acceptance and merge
 
-The coordinator owns PR delivery. When remote delivery is authorized, carry it
-through merge and confirm the result. Routine PRs require independent agent
+The coordinator owns PR delivery. A request to push or deliver repository
+changes authorizes the routine PR path through merge and cleanup unless the
+user limits the scope. Confirm the result. Routine PRs require independent agent
 review and passing checks. Skip a separate human sign-off where the host permits
 agent-led merge. Apply a repository's explicit policy and required host checks.
 
