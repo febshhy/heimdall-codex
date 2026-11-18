@@ -150,7 +150,7 @@ verify_install(){
     path=$(resolve "$rel")
     safe_dest "$path"
     [[ -f $path && ! -L $path ]] || fail "Missing managed file: $path"
-    found=$(sha256sum -- "$path"); found=${found:0:64}
+    found=$(sha256sum < "$path"); found=${found:0:64}
     [[ $found == "$sha" ]] || fail "Managed file changed: $path"
   done < <(jq -r '.managed[]|[.path,.sha256]|@tsv' "$MANIFEST")
   expected=$(jq -r .agents_file "$MANIFEST")
@@ -219,6 +219,12 @@ if [[ $ACTION == remove ]]; then
   verify_install
   local_mode=$(jq -r .agents_mode "$MANIFEST")
   agentfile="$CODEX/$AGENTS"
+  managed_block=$(jq -r .agents_block "$MANIFEST")
+  managed_block+=$'\n'
+  if [[ $local_mode == appended ]]; then managed_block=$'\n'"$managed_block"; fi
+  # Read without stripping terminal newlines so removal preserves user text.
+  IFS= read -r -d '' agent_content < "$agentfile" || :
+  [[ $agent_content == *"$managed_block"* ]] || fail 'Managed instruction block boundaries changed.'
   # Copy every file that removal may touch before deleting anything.
   while IFS=$'\t' read -r rel sha; do
     [[ -n $rel ]] || continue
@@ -240,7 +246,7 @@ if [[ $ACTION == remove ]]; then
     path=$(resolve "$rel")
     rm -- "$path"
   done < <(jq -r '.managed[]|[.path,.sha256]|@tsv' "$MANIFEST")
-  sed -i '/^<!-- Heimdall global: begin -->$/,/^<!-- Heimdall global: end -->$/d' "$agentfile"
+  printf '%s' "${agent_content/"$managed_block"/}" > "$agentfile"
   if [[ $local_mode == created && -z $(tr -d '[:space:]' < "$agentfile") ]]; then rm -- "$agentfile"; fi
   rm -- "$MANIFEST"
   committed=1
@@ -337,7 +343,7 @@ TAB="$STAGE/managed.tsv"
 for rel in "${RELS[@]}"; do
   if [[ $rel == release/* ]]; then sourcefile="$SOURCE/${rel#release/}"; else sourcefile="$SOURCE/.agents/skills/${rel#skills/}"; fi
   path=$(resolve "$rel")
-  sha=$(sha256sum -- "$sourcefile"); sha=${sha:0:64}
+  sha=$(sha256sum < "$sourcefile"); sha=${sha:0:64}
   printf '%s\t%s\n' "$rel" "$sha" >> "$TAB"
   needs_exec=0
   case "$rel" in release/scripts/factory|release/scripts/heimdall|release/scripts/heimdall-secrets|release/scripts/heimdall-bootstrap) needs_exec=1;; esac
