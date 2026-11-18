@@ -54,6 +54,17 @@ Replace text in square brackets with your own context. These prompts are startin
 
 > Implement [feature] across [components]. Agree on the shared contract first. Delegate only tasks with clear boundaries and prerequisites. Review integration and report actual verification evidence.
 
+### Independently review delegated changes
+
+Use an independent reviewer for delegated WRITE work. Routine changes completed by the main agent do not need an extra reviewer. In Codex CLI, the reviewer inherits the parent session's permissions, so its instructions or agent TOML cannot make it read-only on their own. Set the session permission before starting the reviewer:
+
+1. Wait for the delegated WRITE work to finish and inspect the integrated diff.
+2. Run `/permissions` and select **Read-only**.
+3. Ask Codex to start `heimdall_reviewer` (or a separate `default` agent if it is unavailable) to inspect the final diff, relevant requirements, source, and tests. Tell it not to edit files and to report concrete findings and checks observed.
+4. Inspect the review result. If changes are needed, restore the prior permission mode, make them, then repeat the read-only review against the updated diff.
+
+The reviewer has a separate agent context but shares the project workspace. Read-only permissions prevent it from changing that workspace; they do not establish a separate OS identity. Do not treat review instructions or a clean review report as proof that required tests passed.
+
 ### Specify a formal rule
 
 > For [critical rule], draft candidate Bend laws from approved intent and identify assumptions and counterexamples. Request review of the exact laws before treating them as binding. Keep proof and production conformance separate.
