@@ -1,11 +1,11 @@
 # Heimdall
 
-**Trace the change. Preserve the contract. Verify the result.**
+**A software engineering workflow for building and evolving projects with Codex.**
 
 [![Codex](https://img.shields.io/badge/for-Codex-775726?style=flat-square&labelColor=202A30)](https://developers.openai.com/codex/ide)
 [![MIT license](https://img.shields.io/badge/license-MIT-775726?style=flat-square&labelColor=202A30)](LICENSE)
 
-Heimdall gives Codex a disciplined way to work in real codebases. Use it with Codex CLI, the Codex IDE extension, Codex in the ChatGPT desktop app (Local, Worktree, or Cloud), or Codex on the web at [chatgpt.com/codex](https://chatgpt.com/codex/) to trace affected paths, make focused changes, and show evidence behind the result. It works with your existing language, framework, and tests.
+Heimdall is a project template that brings requirements, design, implementation, and delivery into one workflow. It works with your existing language, framework, and tests. Use it with Codex CLI, the IDE extension, the ChatGPT desktop app, or [Codex on the web](https://chatgpt.com/codex/).
 
 ![A dimensional illustration of a guarded hall beside a bridge crossing a misty gorge, inspired by Heimdall’s watch at Bifröst.](marketing/heimdall-watch.jpg)
 
@@ -13,14 +13,16 @@ Heimdall gives Codex a disciplined way to work in real codebases. Use it with Co
 
 ## Why Heimdall?
 
-An AI-built checkout can pass CI and still charge someone twice after a timeout. Tests and review help when someone knows to check that case. Heimdall gives Codex a workflow for finding those gaps before editing, then showing what changed and how it was verified. [See the recovery example](marketing/ENGINEERING_PLAYBOOK.md#5-recovery--design-for-duplicate-and-uncertain-outcomes).
+Vibe coding can get an app running quickly. Then real users arrive, the data model needs to change, or a release breaks and someone has to recover it. If the decisions live in old chats, each new session has to piece together how the system works. Prompts, tests, and review help, but they still need a shared understanding of what the software should do.
+
+Heimdall gives Codex a way to build that understanding and carry it through delivery. Start with what people need, design how the system should behave, and use the project’s tools to verify the result. The same workflow supports a first feature, a redesign, or a change across several parts of a mature codebase. When the work is large enough to split, Heimdall gives agents a way to share context, coordinate changes, and review the result.
 
 <picture>
   <source media="(max-width: 640px)" srcset="marketing/heimdall-flow-mobile.svg">
   <img src="marketing/heimdall-flow.svg" alt="Four stages of engineering work connected by one route: Intent, Source paths, Focused change, and Evidence. Evidence records what was verified, including failures and unknowns.">
 </picture>
 
-The [engineering playbook](marketing/ENGINEERING_PLAYBOOK.md) shows how to apply these methods to a single change, from defining its contract through testing recovery.
+The [engineering playbook](marketing/ENGINEERING_PLAYBOOK.md) uses a report export to show how those decisions fit together, including when a job fails and has to recover.
 
 ## Start in an existing project
 
