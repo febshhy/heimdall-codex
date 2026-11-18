@@ -140,7 +140,21 @@ base or use the required merge queue. Fix actionable findings, rerun affected
 checks, and reevaluate the gate. Missing evidence or a host rule that prevents
 agent-led merge leaves the PR open. Report the blocking rule or failed check.
 
-## 6. Completion report
+## 6. Post-merge cleanup
+
+Verify that the host reports the PR merged into the integration branch. Fetch
+that branch and check that it contains the reported merge commit. This also
+works for squash merges, where the original task commits may be absent.
+
+After verification, delete the task-owned remote branch if the host has not
+already deleted it. Confirm it still points to the reviewed head and has no
+dependent PRs. Return the local checkout to the integration branch and
+fast-forward it when safe. Remove the local task branch and any task-created
+worktree only after checking for unrelated or uncommitted work. If cleanup would
+discard work or affect another task, preserve the branch and report the reason.
+Create tags only when the task explicitly authorizes a release or tag.
+
+## 7. Completion report
 
 Report the task identifier when it exists.
 

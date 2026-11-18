@@ -137,9 +137,12 @@ For authorized PR delivery, the coordinator runs the workflow through merge and
 confirmation. Routine PRs need independent agent review and passing checks.
 They do not need a human approval when hosting rules permit agent-led merge.
 Read the [Git and Pull-Request Procedure](.agents/skills/repository-work/references/GIT_AND_PR.md)
-for the integration branch, evidence dependencies, and merge gates. Reuse an
-assigned branch or worktree and preserve existing edits. If host policy blocks
-an agent-led merge, report the blocker and leave the PR open.
+for the integration branch (default `main`), evidence dependencies, and merge
+gates. Reuse an assigned branch or worktree and preserve existing edits. A push
+is an intermediate step. Confirm the merge into the integration branch, then
+remove task-owned branches that are safe to delete. Create tags only for an
+authorized release or tagging task. If host policy blocks an agent-led merge,
+report the blocker and leave the PR open.
 
 <!-- Heimdall Bend2: begin -->
 ## Bend 2 law-first specification (when selected and available)
