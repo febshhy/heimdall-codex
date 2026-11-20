@@ -13,14 +13,33 @@ Heimdall requirements and lifecycle records outside `docs/`.
 
 ## Codex subagent runtime boundary
 
-For bounded engineering delegation, use Codex's built-in `explorer` and `worker` roles. For independent review, prefer the project-scoped `heimdall_reviewer` (`.codex/agents/heimdall_reviewer.toml`) when installed; otherwise assign a separate `default` subagent an explicit read-only review task. Never assume a role label enforces read-only access or proves reviewer independence. Native Codex manages agent spawning; `scripts/factory` only observes lifecycle boundaries and validates evidence. **Only one active factory node may use a given Git worktree**. Use separate worktrees for simultaneous WRITE nodes and verify integration before acceptance; otherwise serialize nodes.
+For bounded engineering delegation, use the project-scoped roles below. For independent review, use the project-scoped `heimdall_reviewer` (`.codex/agents/heimdall_reviewer.toml`). Never assume a role label enforces read-only access or proves reviewer independence. Native Codex manages agent spawning; `scripts/factory` only observes lifecycle boundaries and validates evidence. **Only one active factory node may use a given Git worktree**. Use separate worktrees for simultaneous WRITE nodes and verify integration before acceptance; otherwise serialize nodes.
 
-For the Heimdall release repository, use GPT-6.2 Sol for reasoning-intensive
-work such as cross-module design, difficult debugging, and consequential
-reviews. Use GPT-6 Luna as the lower-cost default for focused exploration,
-routine verification, and well-scoped changes. When delegating demanding
-work, select Sol explicitly if the session supports a model override. Keep
-the configured reasoning defaults and honor any model the user specifies.
+Every task must delegate at least one substantive work item to a native Codex
+subagent and use its result before acceptance. This applies to read-only tasks
+and small fixes. The coordinator classifies and integrates work. Subagents
+do not recursively delegate.
+
+- Use the role `heimdall_reasoning`, pinned to `gpt-6.2-sol`, for ambiguous
+  requirements, non-trivial design, diagnosis without an established cause,
+  risk decisions, and reviews that require judgment. `heimdall_reviewer`
+  is pinned to the same model for independent review.
+- Use `heimdall_routine`, pinned to `gpt-6-luna`, for scoped
+  fact collection, writing from a settled brief, implementation from a settled
+  design, running commands and tests, and reporting recorded results.
+- Split mixed work at the decision boundary. Sol returns a decision or plan.
+  Luna executes the settled work. Unexpected results that require a new
+  decision return to Sol.
+- Supply a self-contained task and disable history forking on every launch. If the required role or model is unavailable,
+  stop the affected work and report the blocker. Model substitution and
+  solo completion are prohibited.
+
+Trusted Codex CLI sessions in this release repository use a spawn hook to
+check exact role/model pairs and a Stop hook to require a successful native
+spawn in the current turn. If the receipt is missing, the Stop hook asks
+for one continuation and then reports a policy failure. Completion still
+requires the worker's result.
+Hooks cover supported Codex CLI paths and depend on project hook trust.
 
 ## Secret access and existing-project discovery
 
@@ -73,7 +92,7 @@ commit is mandatory solely because this policy applies.
 
 **Handoff rule:** requirements define *what* is owed; domain, GUI and database methods design their respective *how*; Graph Protocol delegates *work*; Factory coordinates and checks evidence; Testing checks behavior. A downstream method may identify a missing or conflicting upstream decision. Return that question to its owner, preserve the known contract, and block only the affected work when the answer is material. Do not reconcile contradictory authorities by choosing whichever document was read last. Keep a UI `Submitting` state distinct from a domain `Paid` state, and pass typed domain commands/results across the boundary.
 
-This clarifies ownership; it does not add mandatory artifacts, graph nodes, approval rounds or exhaustive checklists to small, well-specified work. The original canonical Software Design Thinking, GUI Design Thinking and Graph Protocol methods keep their full scope.
+This clarifies ownership. For small, well-specified work, keep delegation to the smallest substantive task and use the existing verification gates. The original canonical Software Design Thinking, GUI Design Thinking and Graph Protocol methods keep their full scope.
 
 ## Call Graph Output — shared reporting contract
 
@@ -176,7 +195,7 @@ PR, or a task branch still awaiting safe cleanup means delivery is pending.
 
 ## Cost and context
 
-- Simple local work: main agent only. Complex or risky work: smallest sufficient graph. Subagents are optional, not an objective.
+- Simple local work uses one bounded subagent. Complex or risky work uses the smallest sufficient graph.
 - Give each worker only task, relevant requirements, paths, owner and required output. Keep full logs under `.work/`. Avoid repeating the global policy in every worker packet.
 - Prefer existing project stack, tests and operational conventions. Require verification evidence even when it increases token usage.
 
