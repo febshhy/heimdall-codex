@@ -20,7 +20,7 @@ The original ten-section method in `references/PROTOCOL.md` is authoritative. Re
 7. Collect controller observations only before/after work, with shell `scripts/factory begin/end/run` (§7).
 8. Compare delegated versus implemented graph and accept only after relevant verification (§9). For independent WRITE work, use a different reviewer and inspect real diff/test evidence.
 
-Use `scripts/factory init`, `prompt`, `begin/end/run`, and `validate`. The controller runs on Linux using Bash+jq; it needs no Python or Go runtime. Schema version 3 is mandatory. For a trivial single-agent task, keep the method but avoid an unnecessary multi-node execution graph.
+Use `scripts/factory init`, `prompt`, `begin/end/run`, and `validate`. The controller runs on Linux using Bash+jq; it needs no Python or Go runtime. Schema version 3 is mandatory. For a trivial delegated read, use one bounded subagent without an unnecessary multi-node execution graph. Delegated WRITEs retain their independent verification and schema-3 gates.
 
 The CLI checks recorded readiness and evidence consistency. The coordinator
 accepts the actual work and must resolve missing, stale, or disputed evidence

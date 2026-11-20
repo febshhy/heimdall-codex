@@ -63,7 +63,7 @@ Use an independent reviewer for delegated WRITE work. In CLI, IDE, and desktop L
    - In Codex CLI, enter `/permissions` and press Enter to open the permissions picker. Select the **Read-only** profile and confirm that it is active before continuing.
    - In the Codex IDE extension, open the permissions control below the composer and select the **Read-only** profile. Confirm that it is active before continuing.
    - In the ChatGPT desktop app's Codex view, open the permissions control below the composer and select a profile that is configured as read-only. If you use **Custom (config.toml)**, verify that its effective profile is `:read-only`.
-3. Ask Codex to start `heimdall_reviewer` (or a separate `default` agent if it is unavailable) to inspect the final diff, relevant requirements, source, and tests. Tell it not to edit files and to report concrete findings and checks observed.
+3. Ask Codex to start `heimdall_reviewer` to inspect the final diff, relevant requirements, source, and tests. Tell it not to edit files and to report concrete findings and checks observed.
 4. Keep the session in read-only mode during review. If Codex requests approval for a write or command that could change files, deny it; report that check as unverified if it cannot be completed read-only.
 5. Inspect the review result. If changes are needed, restore the prior profile using the same CLI command or permission control before editing. After the changes, repeat the review in read-only mode against the updated diff.
 

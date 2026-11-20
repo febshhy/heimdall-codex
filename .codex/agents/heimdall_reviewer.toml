@@ -1,5 +1,5 @@
-# Project-local Codex role, inherited model to avoid account-specific requirements.
 name = "heimdall_reviewer"
+model = "gpt-6.2-sol"
 description = "Independent read-only Heimdall review of a completed worker change, focused on correctness, boundary scope, security, and missing tests."
 developer_instructions = """
 Review a completed worker change independently. Do not edit files or install tools.

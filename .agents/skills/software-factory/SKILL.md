@@ -12,7 +12,7 @@ Inspect goal/repo → Retrieve authorized behavior
   → Classify direct | graph | critical
     → Discover/design only needed scope + unknowns
       → Tidy first | after | later | never (only if justified)
-        → Direct bounded work OR plan DAG and delegate ready nodes
+        → Delegate a bounded task OR plan DAG and delegate ready nodes
           → Verify (incl. independent review for delegated WRITE)
             → Reconcile observed A/E/R + actual changes
               → Local scope: commit and report verified result unless requested uncommitted
@@ -21,7 +21,7 @@ Inspect goal/repo → Retrieve authorized behavior
 
 ## Classification and design
 
-- **Direct:** local low-risk change → main agent, focused check; no unnecessary JSON graph or subagent.
+- **Direct:** local low-risk task → one bounded native subagent, then a focused check. Apply schema 3 when delegating a WRITE.
 - **Graph:** multi-module/dependencies or delegated WRITE → `$graph-protocol` schema-3 READ/RUN/WRITE DAG with explicit owners, named output edges, A/E/R prompts, file ownership and verification argv.
 - **Critical:** auth, security, money, migrations, destruction, consequential correctness → stronger evidence, rollback/recovery and approval where required; not automatically more agents.
 
@@ -35,7 +35,7 @@ Plan A/E/R → scripts/factory init --plan <plan.json> --graph .work/graphs/<tas
     → actual tests/diff → scripts/factory validate --graph <record>
 ```
 
-Dispatch only ready nodes; missing/failed/disputed predecessors block successors. READ/RUN use `run --return -- <argv>`; WRITE uses `prompt`, `begin` and `end --return`. Prefer native `explorer` for READ, `worker` for WRITE; independent review uses `heimdall_reviewer` when installed or separate `default` read-only reviewer. Check different identities and actual observations: a role label does not enforce independence. **Factory leases an entire Git worktree:** serialize nodes in one worktree, even disjoint files. Parallel WRITE requires prepared isolated worktrees, disjoint ownership and deliberate integration. Retry a failed node at most once after relevant correction. No need for extra agents for trivial tasks. Read `references/LIFECYCLE.md` for examples and critical release boundary.
+Dispatch only ready nodes; missing/failed/disputed predecessors block successors. READ/RUN use `run --return -- <argv>`; WRITE uses `prompt`, `begin` and `end --return`. Use the project-scoped roles in AGENTS.md. Independent review uses `heimdall_reviewer`. Check different identities and actual observations: a role label does not enforce independence. **Factory leases an entire Git worktree:** serialize nodes in one worktree, even disjoint files. Parallel WRITE requires prepared isolated worktrees, disjoint ownership and deliberate integration. Retry a failed node at most once after relevant correction. Every task requires a substantive subagent result. Apply the role/model routing in the governing AGENTS.md. Read `references/LIFECYCLE.md` for examples and critical release boundary.
 
 ## Selected Bend2 gate
 
