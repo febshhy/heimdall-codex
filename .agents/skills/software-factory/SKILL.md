@@ -9,10 +9,10 @@ description: Orchestrate software delivery from a user goal through requirements
 
 ```text
 Inspect goal/repo → Retrieve authorized behavior
-  → Classify direct | graph | critical
+  → Choose graph depth for the task
     → Discover/design only needed scope + unknowns
       → Tidy first | after | later | never (only if justified)
-        → Delegate a bounded task OR plan DAG and delegate ready nodes
+        → Define A/E/R and delegate ready nodes
           → Verify (incl. independent review for delegated WRITE)
             → Reconcile observed A/E/R + actual changes
               → Local scope: commit and report verified result unless requested uncommitted
@@ -21,8 +21,10 @@ Inspect goal/repo → Retrieve authorized behavior
 
 ## Classification and design
 
-- **Direct:** local low-risk task → one bounded native subagent, then a focused check. Apply schema 3 when delegating a WRITE.
-- **Graph:** multi-module/dependencies or delegated WRITE → `$graph-protocol` schema-3 READ/RUN/WRITE DAG with explicit owners, named output edges, A/E/R prompts, file ownership and verification argv.
+Use `$graph-protocol` by default for every task.
+
+- **Single node:** a bounded read or routine command → include A/E/R and the expected output in the native subagent prompt.
+- **Schema 3:** multiple dependent nodes or any delegated WRITE → record explicit owners, named output edges, A/E/R prompts, file ownership and verification argv.
 - **Critical:** auth, security, money, migrations, destruction, consequential correctness → stronger evidence, rollback/recovery and approval where required; not automatically more agents.
 
 Determine depth from impact if wrong, contract significance and existing detection strength (`AGENTS.md` selective audit). Use `$requirements` for material ambiguity, `$software-design-thinking` for domain structure, `$gui-design-thinking` for functional UI, `$visual-design` for presentation, `$content-writing` for substantive copy, `$evidence-research` for blocking external evidence, `$adr` for hard-to-reverse decisions. Keep unknowns explicit; no invented behavior or requirements. For structure use `$repository-work` tidy sequencing, bounded to the requested work; update governing design graph first when its contracts change.

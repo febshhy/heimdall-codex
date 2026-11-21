@@ -22,14 +22,19 @@ depends on a Sol decision, Luna can collect the facts needed for that decision
 when the read is ready. Use the result before accepting the task. Subagents do
 not recursively delegate.
 
-For Graph Protocol work, Sol records the A/E/R scope, accepted predecessor
-outputs, and required factory observations before dispatching a ready node.
-Use a bounded Luna assignment to run coordinator-owned factory commands and
-return their observations. Sol decides readiness and acceptance from that
-evidence. Follow the schema-3 lifecycle and the worktree lease. If no substantive
-Luna assignment is eligible, report the blocker. A Luna launch receipt does not
-satisfy a graph gate. Delegated WRITEs still require independent Sol review and
-`scripts/factory validate` before acceptance.
+Use Graph Protocol for every task. For a small delegated read or command, put
+the single node's A/E/R scope and expected output in the worker prompt. For
+delegated WRITEs and work with multiple dependent nodes, use the schema-3
+factory lifecycle.
+
+Sol records the scope and accepts predecessor outputs before dispatching a
+ready node. Luna can run preflight and observation commands in a separate
+controller assignment. For a WRITE, dispatch the node owner only after
+`scripts/factory begin` succeeds and acquires the worktree lease. After the
+worker returns, Sol compares the returned A/E/R with the delegation and decides
+acceptance. Delegated WRITEs require independent Sol review and
+`scripts/factory validate`. Report a blocker when no substantive Luna assignment
+is eligible. A Luna launch receipt records a launch only.
 
 The Sol coordinator owns decisions, scheduling, and integration. Delegate
 shell execution, edits, tests, Git operations, CLI polling, and process
