@@ -15,12 +15,21 @@ Heimdall requirements and lifecycle records outside `docs/`.
 
 For bounded engineering delegation, use the project-scoped roles below. For independent review, use the project-scoped `heimdall_reviewer` (`.codex/agents/heimdall_reviewer.toml`). Never assume a role label enforces read-only access or proves reviewer independence. Native Codex manages agent spawning; `scripts/factory` only observes lifecycle boundaries and validates evidence. **Only one active factory node may use a given Git worktree**. Use separate worktrees for simultaneous WRITE nodes and verify integration before acceptance; otherwise serialize nodes.
 
-Start a substantive `heimdall_routine` Luna assignment by default on every
-task, including read-only tasks and small fixes. The user does not need to ask
-for delegation. Start it as the first work action. When execution depends on a
-Sol decision, assign Luna the needed fact collection first, then hand back the
-settled operation. Use the Luna result before accepting the task. Subagents
-do not recursively delegate.
+The Sol coordinator receives the user prompt and delegates substantive routine
+work to `heimdall_routine` (Luna) by default, including on read-only tasks and
+small fixes. Start Luna at the first eligible delegation point. If implementation
+depends on a Sol decision, Luna can collect the facts needed for that decision
+when the read is ready. Use the result before accepting the task. Subagents do
+not recursively delegate.
+
+For Graph Protocol work, Sol records the A/E/R scope, accepted predecessor
+outputs, and required factory observations before dispatching a ready node.
+Use a bounded Luna assignment to run coordinator-owned factory commands and
+return their observations. Sol decides readiness and acceptance from that
+evidence. Follow the schema-3 lifecycle and the worktree lease. If no substantive
+Luna assignment is eligible, report the blocker. A Luna launch receipt does not
+satisfy a graph gate. Delegated WRITEs still require independent Sol review and
+`scripts/factory validate` before acceptance.
 
 The Sol coordinator owns decisions, scheduling, and integration. Delegate
 shell execution, edits, tests, Git operations, CLI polling, and process
