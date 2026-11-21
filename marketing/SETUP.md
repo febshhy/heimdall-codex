@@ -136,7 +136,17 @@ Setup refuses unsafe nested repositories and populated directories without Git.
 
 ## Start Codex
 
-After project installation, open the target repository in a local Codex client (CLI, IDE extension, or desktop app in Local or Worktree mode). Trust the project so the local client can load its project-scoped `.codex/config.toml` settings.
+After project installation, open the target repository in a local Codex client (CLI, IDE extension, or desktop app in Local or Worktree mode). Trust the project so the client can load its project-scoped settings and hooks.
+
+The `.codex/config.toml` in the Heimdall clone sets `workspace-write`, `on-request`, and `auto_review` defaults when you open that clone as a trusted project in Codex CLI. Automatic review can approve or deny eligible approval requests. It does not remove sandbox or managed policy restrictions. CLI options can override configuration, and organization or system managed requirements can constrain it.
+
+In the desktop app, select **Approve for me** from the current chat's permissions control when it is available.
+
+The Heimdall installer does not copy the clone's `.codex/config.toml` into your application, so these defaults do not apply there. To opt into automatic review for an application with Codex CLI, run this from the application repository:
+
+```bash
+codex --approve-for-me
+```
 
 **Codex CLI:**
 
