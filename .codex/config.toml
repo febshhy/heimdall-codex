@@ -17,7 +17,7 @@ type = "command"
 command = 'python3 "$(git rev-parse --show-toplevel)/.codex/model-routing.py"'
 
 [[hooks.PreToolUse]]
-matcher = "^(spawn_agent|collaborationspawn_agent)$"
+matcher = "^(spawn_agent|collaborationspawn_agent|Bash|apply_patch|Edit|Write)$"
 
 [[hooks.PreToolUse.hooks]]
 type = "command"

@@ -15,10 +15,19 @@ Heimdall requirements and lifecycle records outside `docs/`.
 
 For bounded engineering delegation, use the project-scoped roles below. For independent review, use the project-scoped `heimdall_reviewer` (`.codex/agents/heimdall_reviewer.toml`). Never assume a role label enforces read-only access or proves reviewer independence. Native Codex manages agent spawning; `scripts/factory` only observes lifecycle boundaries and validates evidence. **Only one active factory node may use a given Git worktree**. Use separate worktrees for simultaneous WRITE nodes and verify integration before acceptance; otherwise serialize nodes.
 
-Every task must delegate at least one substantive work item to a native Codex
-subagent and use its result before acceptance. This applies to read-only tasks
-and small fixes. The coordinator classifies and integrates work. Subagents
+Start a substantive `heimdall_routine` Luna assignment by default on every
+task, including read-only tasks and small fixes. The user does not need to ask
+for delegation. Start it as the first work action. When execution depends on a
+Sol decision, assign Luna the needed fact collection first, then hand back the
+settled operation. Use the Luna result before accepting the task. Subagents
 do not recursively delegate.
+
+The Sol coordinator owns decisions, scheduling, and integration. Delegate
+shell execution, edits, tests, Git operations, CLI polling, and process
+monitoring to Luna. Luna owns command sessions through completion and reports
+results or blockers. While work is running, the coordinator uses independent
+ready work or native subagent completion notifications. Keep shell access for
+an independent Sol reviewer limited to inspection of the evidence.
 
 - Use the role `heimdall_reasoning`, pinned to `gpt-6.2-sol`, for ambiguous
   requirements, non-trivial design, diagnosis without an established cause,
@@ -35,8 +44,8 @@ do not recursively delegate.
   solo completion are prohibited.
 
 Trusted Codex CLI sessions in this release repository use a spawn hook to
-check exact role/model pairs and a Stop hook to require a successful native
-spawn in the current turn. If the receipt is missing, the Stop hook asks
+check exact role/model pairs and a Stop hook to require a successful Luna
+launch in the current turn. If the receipt is missing, the Stop hook asks
 for one continuation and then reports a policy failure. Completion still
 requires the worker's result.
 Hooks cover supported Codex CLI paths and depend on project hook trust.
