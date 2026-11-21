@@ -3,8 +3,11 @@
 ## 1. Workspace and branches
 
 Use trunk-based development. Use the integration branch defined in `AGENTS.md`
-or repository policy, defaulting to `main`. Start new task branches from the
-current remote trunk. Keep each task branch only as long as delivery requires.
+or repository policy, defaulting to `main`. Fetch the remote integration branch
+and confirm its current tip before creating a task branch or reusing an assigned
+checkout. Reuse an assigned branch and worktree when available. Start a new task
+branch from the confirmed remote trunk. Keep each task branch only as long as
+delivery requires.
 
 Do not commit or push directly to the integration branch during ordinary task work.
 
@@ -123,8 +126,12 @@ Plan the PR work as dependencies with named outputs:
   approval under another person's identity.
 - The coordinator resolves findings, checks review and test evidence against the
   current PR head, and confirms required host checks or merge-queue eligibility.
-  For delegated WRITEs, also compare the returned A/E/R records with the delegated
-  subgraph and validate the schema-3 factory record before acceptance.
+  For work using schema 3, keep the premerge candidate graph in its own record
+  ending at candidate evidence. Run `scripts/factory validate` on that record
+  before accepting the candidate. Pass the accepted reviewed head and candidate
+  validation evidence as named inputs to a separate schema-3 delivery record.
+  That graph records merge followed by cleanup and is validated after both
+  observations are complete.
 - The accepted head authorizes the merge node within the task's remote scope.
   Use a head-checked merge or the configured merge queue. Observe the host's
   merge result and record the PR URL and merge commit when available.
@@ -134,9 +141,16 @@ Plan the PR work as dependencies with named outputs:
 
 In the delegated A/E/R plan, A carries these outputs along dependency edges.
 E covers wrong scope or base, missing evidence, and misread acceptance criteria.
-For each delegated node, R includes its bounded subgraph, applicable method,
-verification command, and reason for the work. Include the candidate commit in
-review and verification inputs. Give concurrent WRITE nodes separate worktrees.
+Use schema 3 for every delegated WRITE and for work with multiple dependent
+nodes. A single eligible read or routine command can carry its A/E/R inline in
+the prompt. For each schema-3 node, R includes its bounded subgraph, applicable
+method, exact verification argv arrays, inputs, and reason for the work. Include
+the candidate commit in review and verification inputs. Give concurrent WRITE
+nodes separate worktrees.
+
+After each delegated node returns, compare its structured A/E/R with the
+delegated subgraph before accepting its outputs or dispatching a successor.
+Every delegated WRITE also requires independent review and passing checks.
 
 If the head changes, repeat review and verification for the new head. If the
 base changes, recheck the affected integration evidence against the current
