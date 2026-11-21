@@ -15,37 +15,99 @@ Heimdall requirements and lifecycle records outside `docs/`.
 
 For bounded engineering delegation, use the project-scoped roles below. For independent review, use the project-scoped `heimdall_reviewer` (`.codex/agents/heimdall_reviewer.toml`). Never assume a role label enforces read-only access or proves reviewer independence. Native Codex manages agent spawning; `scripts/factory` only observes lifecycle boundaries and validates evidence. **Only one active factory node may use a given Git worktree**. Use separate worktrees for simultaneous WRITE nodes and verify integration before acceptance; otherwise serialize nodes.
 
-Every task must delegate at least one substantive work item to a native Codex
-subagent and use its result before acceptance. This applies to read-only tasks
-and small fixes. The coordinator classifies and integrates work. Subagents
-do not recursively delegate.
+The Sol coordinator receives the user prompt and delegates substantive routine
+work to `heimdall_routine` (Luna) by default, including on read-only tasks and
+small fixes. Start Luna at the first eligible delegation point. If implementation
+depends on a Sol decision, Luna can collect the facts needed for that decision
+when the read is ready. Use the result before accepting the task. Subagents do
+not recursively delegate.
 
-- Use the role `heimdall_reasoning`, pinned to `gpt-6.2-sol`, for ambiguous
-  requirements, non-trivial design, diagnosis without an established cause,
-  risk decisions, and reviews that require judgment. `heimdall_reviewer`
-  is pinned to the same model for independent review.
-- Use `heimdall_routine`, pinned to `gpt-6-luna`, for scoped
-  fact collection, writing from a settled brief, implementation from a settled
-  design, running commands and tests, and reporting recorded results.
-- Split mixed work at the decision boundary. Sol returns a decision or plan.
-  Luna executes the settled work. Unexpected results that require a new
-  decision return to Sol.
-- Supply a self-contained task and disable history forking on every launch. If the required role or model is unavailable,
-  stop the affected work and report the blocker. Model substitution and
-  solo completion are prohibited.
+Use Graph Protocol for every task. For a small delegated read or command, put
+the single node's A/E/R scope and expected output in the worker prompt. For
+delegated WRITEs and work with multiple dependent nodes, use the schema-3
+factory lifecycle.
+
+Sol records the scope and accepts predecessor outputs before dispatching a
+ready node. Luna can run preflight and observation commands in a separate
+controller assignment. For a WRITE, dispatch the node owner only after
+`scripts/factory begin` succeeds and acquires the worktree lease. After the
+worker returns, Sol compares the returned A/E/R with the delegation and decides
+acceptance. Delegated WRITEs require independent Sol review and
+`scripts/factory validate`. Report a blocker when no substantive Luna assignment
+is eligible. A Luna launch receipt records a launch only.
+
+The Sol coordinator owns decisions, scheduling, and integration. Delegate
+shell execution, edits, tests, Git operations, CLI polling, and process
+monitoring to Luna. Luna owns command sessions through completion and reports
+results or blockers. While work is running, the coordinator uses independent
+ready work or native subagent completion notifications.
+
+For factory review, read-only means assessing a supplied evidence packet. The
+reviewer has no shell or edit assignment. A Luna collector independent of the
+author gathers the actual diff, relevant source, and command observations.
+Tie the evidence to the candidate revision and any relevant uncommitted changes.
+Sol checks the evidence and returns findings or specific requests for more
+observations. Hold acceptance if evidence is missing or the candidate changes.
+Project hooks and role settings restrict covered tools. The host owns sandbox
+permissions and any additional tools exposed to the reviewer.
+
+- **Use Sol when a decision is needed.** Examples include interpreting ambiguous
+  requirements, reconciling conflicting evidence, choosing among designs with
+  material tradeoffs, diagnosing a failure with competing causes, and deciding
+  whether evidence supports acceptance. Use `heimdall_reasoning` (`gpt-6.2-sol`)
+  when that decision needs a separate assignment. Use `heimdall_reviewer`
+  (`gpt-6.2-sol`) for required independent review.
+- **Use Luna when the inputs, method, and success criteria are settled.** Use
+  `heimdall_routine` (`gpt-6-luna`) to collect facts, draft from a brief,
+  implement an accepted plan, run checks, apply a specified recovery, and
+  report observed results. Task size alone does not determine the model.
+- Split mixed nodes at the decision boundary. Luna supplies the facts, Sol
+  resolves the decision, and Luna executes the resulting plan. If a result
+  falls outside the agreed procedure, Luna returns the evidence and the
+  decision needed. Sol resolves it or raises it with the user if the decision
+  belongs to them.
+- Start each subagent with fresh conversation context. Set `fork_turns` to
+  `none` on V2 and keep `fork_context` false on V1. The coordinator writes a
+  self-contained packet with the node’s A/E/R, the minimum accepted inputs,
+  owned paths, and the expected result. Share only the excerpts needed to
+  perform the node. Keep the parent transcript and unrelated work out of the
+  packet. If fresh context, the pinned role, or its model is unavailable,
+  stop the affected work and report the blocker.
 
 Trusted Codex CLI sessions in this release repository use a spawn hook to
-check exact role/model pairs and a Stop hook to require a successful native
-spawn in the current turn. If the receipt is missing, the Stop hook asks
+check exact role/model pairs and a Stop hook to require a successful Luna
+launch in the current turn. If the receipt is missing, the Stop hook asks
 for one continuation and then reports a policy failure. Completion still
 requires the worker's result.
-Hooks cover supported Codex CLI paths and depend on project hook trust.
+Use a trusted Codex CLI session with the project hooks active for enforced
+routing. Report missing hook coverage as a blocker before claiming enforcement.
+Use `heimdall_reviewer` for independent factory review. Built-in `/review`
+requires shell inspection, which this workflow routes to Luna.
 
 ## Secret access and existing-project discovery
 
 Treat Heimdall credential metadata (`.heimdall/credential-names.json`) as **names only**, never a credential source. Never ask the user to paste API keys into agent chat or repo files. Do not read `.env`, `.env.*`, local tokens, cloud credential files, shell environment values, or private keys. Do not execute commands that print secrets (`env`, `printenv`, credential store dumps). This instruction reduces accidental reads; **it is not an OS security boundary**. An agent with unrestricted shell access and the same OS identity can still access readable files, environment variables, and processes. Actual value isolation requires a separate sandbox/identity and an outside-the-agent vault/proxy/tool that returns narrowly scoped results. See `docs/security/CREDENTIAL_BOUNDARY.md` in the Heimdall release.
 
 When adopting an existing codebase, install with `scripts/heimdall start` after inspecting the plan. Then use `$project-adoption` and `$software-design-thinking` to inspect actual source and report a relevant, evidence-backed call graph in the **Call Graph Output** format below. No language-specific scanner, automatic callgraph file, or inferred historical ADR is required. Preserve existing ADRs and end-user documents; writing project `docs/` requires a separate, explicit task approval. For a new project `scripts/heimdall start --project <path>` selects the correct mode; preview does not modify target files.
+
+## Automatic software workflow
+
+For software creation, modification, or repair, start **research → plan →
+build** automatically. The coordinator selects and reads the applicable skills
+and references before the work they govern. Recheck skill coverage when the
+scope changes and include the relevant methods in each worker's A/E/R packet.
+
+1. **Research.** Inspect the relevant requirements, repository files, and
+   existing checks. Delegate bounded fact collection to Luna when ready. Use
+   external evidence when a material assumption needs it.
+2. **Plan.** Sol owns the Graph Protocol plan before implementation and makes
+   any material decisions. Luna can prepare A/E/R from settled instructions.
+   Define scope, evidence, worker roles, and dependencies. A simple task can
+   use one inline A/E/R node.
+3. **Build.** Dispatch eligible Luna work, then verify, review, and integrate
+   through the existing gates. Continue from an authorized plan into execution
+   automatically. Honor explicit plan-only requests, material decisions that
+   need the user, and required approvals.
 
 ## Mandatory routing
 
@@ -55,7 +117,7 @@ When adopting an existing codebase, install with `scripts/heimdall start` after 
 - For **building or reviewing a functional GUI** (screens, forms, flows, dashboards, components, interaction accessibility), use `$gui-design-thinking` even if the request does not mention design or state. It owns UI states, navigation, effects, focus and transitions. Pair with `$software-design-thinking` when domain logic or application architecture is non-trivial. When presenting UI execution flows, apply the shared **Call Graph Output** presentation contract below without changing the canonical GUI state machine.
 - For **visual presentation**, including layout, typography, brand, color, visual components or responsive styling, use `$visual-design`. A pure cosmetic change can use `$visual-design` alone without rebuilding the GUI model. For functional GUI construction pair `$gui-design-thinking` with `$visual-design`; neither may silently override the other's contract.
 - For human-facing copy (README, setup/usage docs, release notes, UI messages), use `$content-writing` and its writing-quality review; pair with `$repository-work` for repository files. For public materials, exclude internal editor notes, draft/prompt instructions, private reasoning, and irrelevant version-change commentary while retaining accurate product limitations and compatibility guidance. For README and marketing documents, keep all substantive labels, headings, workflows, comparisons and verification information in Markdown; do not bake these into diagrams or other images. Keep illustrations for visual storytelling and provide meaningful alt text. For UI copy, respect the actual GUI error/state semantics and use `$gui-design-thinking` when behavior is being designed or reviewed. No GUI model is needed for standalone docs.
-- For delegated WRITE or multi-wave execution also use `$graph-protocol`. For broad external research needed to decide something substantive, use `$evidence-research` in a scoped research subgraph. Do not research by default.
+- Use `$graph-protocol` for every task. Use `$evidence-research` in a scoped research subgraph when a material decision needs broad external evidence.
 - Apply `$requirements` to retrieve controlling behavior and discover material new, ambiguous, or high-consequence workflows. For proof-scoped behavior, retrieve approved `proofs/<rule>/LAWS.bend` first: the law is the formal product specification, not a second PRD. Use the Question Gate for blocking unknowns; a drafted law is not approved merely because it type-checks. Apply `$adr` where needed. SEO is limited to genuinely indexable public pages; accessibility requirements match the platform and relevant standard.
 
 ## Design decisions and change sequencing

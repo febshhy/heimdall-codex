@@ -27,6 +27,7 @@ def valid_spawn(event):
         and args["agent_type"] in MODELS
         and args.get("model", MODELS[args["agent_type"]]) == MODELS[args["agent_type"]]
         and args.get("fork_context", False) is False
+        and args.get("fork_turns", "none") == "none"
         and ("task_name" not in args or args.get("fork_turns") == "none")
     )
 
@@ -59,6 +60,16 @@ def receipt(event):
     return directory / key
 
 
+def deny(reason):
+    return {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": reason,
+        }
+    }
+
+
 def handle(event):
     match event.get("hook_event_name"):
         case "UserPromptSubmit":
@@ -70,20 +81,24 @@ def handle(event):
                     "reason": "Heimdall requires gpt-6.2-sol for the coordinator and the pinned model for each subagent role.",
                 }
         case "PreToolUse":
+            if event.get("tool_name") in ("Bash", "apply_patch", "Edit", "Write"):
+                if (
+                    event.get("agent_id")
+                    and event.get("model") == LUNA
+                    and event.get("agent_type") == "heimdall_routine"
+                ):
+                    return {}
+                return deny("Delegate this operation to the GPT-6 Luna role heimdall_routine.")
             if not valid_spawn(event):
-                return {
-                    "hookSpecificOutput": {
-                        "hookEventName": "PreToolUse",
-                        "permissionDecision": "deny",
-                        "permissionDecisionReason": (
-                            "Use the Sol coordinator and the required model for the role: "
-                            "heimdall_reasoning/heimdall_reviewer use gpt-6.2-sol; "
-                            "heimdall_routine uses gpt-6-luna. Disable history forking."
-                        ),
-                    }
-                }
+                return deny(
+                    "Use the Sol coordinator and the pinned role model. Disable history forking."
+                )
         case "PostToolUse":
-            if valid_spawn(event) and spawn_succeeded(event):
+            if (
+                valid_spawn(event)
+                and event["tool_input"]["agent_type"] == "heimdall_routine"
+                and spawn_succeeded(event)
+            ):
                 path = receipt(event)
                 if path is not None:
                     path.touch(mode=0o600)
@@ -96,7 +111,7 @@ def handle(event):
             except OSError:
                 pass
             reason = (
-                "No successful policy-compliant native subagent spawn was recorded "
+                "No successful GPT-6 Luna routine subagent spawn was recorded "
                 "for this turn. Delegate substantive work and use its result, "
                 "or report the runtime blocker if delegation is unavailable."
             )
