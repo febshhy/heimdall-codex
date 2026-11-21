@@ -81,6 +81,8 @@ R is the delegation prompt completeness check. Every worker needs:
 - **Verification command** -- how the worker proves the work is correct
 - **WHY** -- the reason this node exists, not just what to change
 
+When an existing execution path materially affects an assignment, the coordinator includes or references the smallest relevant source-inspected call graph as an R input before dispatch. Identify the inspected revision and relevant local changes. Separate **Production** and **Tests** when their wiring differs. Label an unestablished path **unknown** or **proposed**. Follow the shared **Call Graph Output** contract in `AGENTS.md`. This source context supplements R. A continues to describe orchestration.
+
 If any R is missing from the prompt, the worker will guess. Guessing is the source of misinterpretation (§4).
 
 ## 6. Trust at boundary
