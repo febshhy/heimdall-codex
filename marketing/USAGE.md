@@ -56,18 +56,15 @@ Replace text in square brackets with your own context. Adapt each prompt to your
 
 ### Independently review delegated changes
 
-Use an independent reviewer for delegated WRITE work. In CLI, IDE, and desktop Local or Worktree sessions, set the session that launches the reviewer to read-only. Reviewer permissions come from that session.
+After delegated WRITE work finishes, the coordinator assigns a Luna agent who
+did not author the change to collect the candidate diff, relevant source and
+requirements, and observed test results. It gives `heimdall_reviewer` a fresh
+task with only that evidence and the review scope.
 
-1. Wait for the delegated WRITE work and any running shell commands to finish, then inspect the integrated diff.
-2. Set the active session to read-only:
-   - In Codex CLI, enter `/permissions` and press Enter to open the permissions picker. Select the **Read-only** profile and confirm that it is active before continuing.
-   - In the Codex IDE extension, open the permissions control below the composer and select the **Read-only** profile. Confirm that it is active before continuing.
-   - In the ChatGPT desktop app's Codex view, open the permissions control below the composer and select a profile that is configured as read-only. If you use **Custom (config.toml)**, verify that its effective profile is `:read-only`.
-3. Ask Codex to start `heimdall_reviewer` to inspect the final diff, relevant requirements, source, and tests. Tell it not to edit files and to report concrete findings and checks observed.
-4. Keep the session in read-only mode during review. If Codex requests approval for a write or command that could change files, deny it; report that check as unverified if it cannot be completed read-only.
-5. Inspect the review result. If changes are needed, restore the prior profile using the same CLI command or permission control before editing. After the changes, repeat the review in read-only mode against the updated diff.
-
-For Cloud review, verify the remote environment’s effective permissions before relying on read-only isolation. Check required test outcomes separately from the review verdict.
+The Sol reviewer returns findings or asks for specific missing evidence. The
+coordinator routes further inspection to Luna and repeats review if the
+candidate changes. Check required test outcomes separately from the review
+verdict. For filesystem isolation, verify the host’s sandbox permissions.
 
 ### Specify a formal rule
 

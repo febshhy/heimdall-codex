@@ -40,8 +40,16 @@ The Sol coordinator owns decisions, scheduling, and integration. Delegate
 shell execution, edits, tests, Git operations, CLI polling, and process
 monitoring to Luna. Luna owns command sessions through completion and reports
 results or blockers. While work is running, the coordinator uses independent
-ready work or native subagent completion notifications. Keep shell access for
-an independent Sol reviewer limited to inspection of the evidence.
+ready work or native subagent completion notifications.
+
+For factory review, read-only means assessing a supplied evidence packet. The
+reviewer has no shell or edit assignment. A Luna collector independent of the
+author gathers the actual diff, relevant source, and command observations.
+Tie the evidence to the candidate revision and any relevant uncommitted changes.
+Sol checks the evidence and returns findings or specific requests for more
+observations. Hold acceptance if evidence is missing or the candidate changes.
+Project hooks and role settings restrict covered tools. The host owns sandbox
+permissions and any additional tools exposed to the reviewer.
 
 - **Use Sol when a decision is needed.** Examples include interpreting ambiguous
   requirements, reconciling conflicting evidence, choosing among designs with
@@ -73,8 +81,8 @@ for one continuation and then reports a policy failure. Completion still
 requires the worker's result.
 Use a trusted Codex CLI session with the project hooks active for enforced
 routing. Report missing hook coverage as a blocker before claiming enforcement.
-Use `heimdall_reviewer` for independent review. In Codex 0.171.0, built-in
-`/review` lacks the named reviewer identity required for shell access.
+Use `heimdall_reviewer` for independent factory review. Built-in `/review`
+requires shell inspection, which this workflow routes to Luna.
 
 ## Secret access and existing-project discovery
 

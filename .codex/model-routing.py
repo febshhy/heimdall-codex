@@ -27,6 +27,7 @@ def valid_spawn(event):
         and args["agent_type"] in MODELS
         and args.get("model", MODELS[args["agent_type"]]) == MODELS[args["agent_type"]]
         and args.get("fork_context", False) is False
+        and args.get("fork_turns", "none") == "none"
         and ("task_name" not in args or args.get("fork_turns") == "none")
     )
 
@@ -81,12 +82,10 @@ def handle(event):
                 }
         case "PreToolUse":
             if event.get("tool_name") in ("Bash", "apply_patch", "Edit", "Write"):
-                if event.get("agent_id") and (
-                    (event.get("model"), event.get("agent_type")) == (LUNA, "heimdall_routine")
-                    or (
-                        event.get("tool_name") == "Bash"
-                        and (event.get("model"), event.get("agent_type")) == (SOL, "heimdall_reviewer")
-                    )
+                if (
+                    event.get("agent_id")
+                    and event.get("model") == LUNA
+                    and event.get("agent_type") == "heimdall_routine"
                 ):
                     return {}
                 return deny("Delegate this operation to the GPT-6 Luna role heimdall_routine.")
