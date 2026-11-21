@@ -58,16 +58,23 @@ an independent Sol reviewer limited to inspection of the evidence.
   falls outside the agreed procedure, Luna returns the evidence and the
   decision needed. Sol resolves it or raises it with the user if the decision
   belongs to them.
-- Supply a self-contained task and disable history forking on every launch. If the required role or model is unavailable,
-  stop the affected work and report the blocker. Model substitution and
-  solo completion are prohibited.
+- Start each subagent with fresh conversation context. Set `fork_turns` to
+  `none` on V2 and keep `fork_context` false on V1. The coordinator writes a
+  self-contained packet with the node’s A/E/R, the minimum accepted inputs,
+  owned paths, and the expected result. Share only the excerpts needed to
+  perform the node. Keep the parent transcript and unrelated work out of the
+  packet. If fresh context, the pinned role, or its model is unavailable,
+  stop the affected work and report the blocker.
 
 Trusted Codex CLI sessions in this release repository use a spawn hook to
 check exact role/model pairs and a Stop hook to require a successful Luna
 launch in the current turn. If the receipt is missing, the Stop hook asks
 for one continuation and then reports a policy failure. Completion still
 requires the worker's result.
-Hooks cover supported Codex CLI paths and depend on project hook trust.
+Use a trusted Codex CLI session with the project hooks active for enforced
+routing. Report missing hook coverage as a blocker before claiming enforcement.
+Use `heimdall_reviewer` for independent review. In Codex 0.171.0, built-in
+`/review` lacks the named reviewer identity required for shell access.
 
 ## Secret access and existing-project discovery
 
