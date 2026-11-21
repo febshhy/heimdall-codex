@@ -70,6 +70,24 @@ Treat Heimdall credential metadata (`.heimdall/credential-names.json`) as **name
 
 When adopting an existing codebase, install with `scripts/heimdall start` after inspecting the plan. Then use `$project-adoption` and `$software-design-thinking` to inspect actual source and report a relevant, evidence-backed call graph in the **Call Graph Output** format below. No language-specific scanner, automatic callgraph file, or inferred historical ADR is required. Preserve existing ADRs and end-user documents; writing project `docs/` requires a separate, explicit task approval. For a new project `scripts/heimdall start --project <path>` selects the correct mode; preview does not modify target files.
 
+## Automatic software workflow
+
+For software creation, modification, or repair, start **research → plan →
+build** automatically. The coordinator selects and reads the applicable skills
+and references before the work they govern. Recheck skill coverage when the
+scope changes and include the relevant methods in each worker's A/E/R packet.
+
+1. **Research.** Inspect the relevant requirements, repository files, and
+   existing checks. Delegate bounded fact collection to Luna when ready. Use
+   external evidence when a material assumption needs it.
+2. **Plan.** Sol turns the findings into a Graph Protocol plan before
+   implementation. Define the scope, evidence, worker roles, and dependencies.
+   A simple task can use one inline A/E/R node.
+3. **Build.** Dispatch eligible Luna work, then verify, review, and integrate
+   through the existing gates. Continue from an authorized plan into execution
+   automatically. Honor explicit plan-only requests, material decisions that
+   need the user, and required approvals.
+
 ## Mandatory routing
 
 - For software creation, modification or repair, follow `$software-factory`; use `$repository-work` for repository changes and `$testing` for changed behavior. Load only applicable skills and references.
@@ -78,7 +96,7 @@ When adopting an existing codebase, install with `scripts/heimdall start` after 
 - For **building or reviewing a functional GUI** (screens, forms, flows, dashboards, components, interaction accessibility), use `$gui-design-thinking` even if the request does not mention design or state. It owns UI states, navigation, effects, focus and transitions. Pair with `$software-design-thinking` when domain logic or application architecture is non-trivial. When presenting UI execution flows, apply the shared **Call Graph Output** presentation contract below without changing the canonical GUI state machine.
 - For **visual presentation**, including layout, typography, brand, color, visual components or responsive styling, use `$visual-design`. A pure cosmetic change can use `$visual-design` alone without rebuilding the GUI model. For functional GUI construction pair `$gui-design-thinking` with `$visual-design`; neither may silently override the other's contract.
 - For human-facing copy (README, setup/usage docs, release notes, UI messages), use `$content-writing` and its writing-quality review; pair with `$repository-work` for repository files. For public materials, exclude internal editor notes, draft/prompt instructions, private reasoning, and irrelevant version-change commentary while retaining accurate product limitations and compatibility guidance. For README and marketing documents, keep all substantive labels, headings, workflows, comparisons and verification information in Markdown; do not bake these into diagrams or other images. Keep illustrations for visual storytelling and provide meaningful alt text. For UI copy, respect the actual GUI error/state semantics and use `$gui-design-thinking` when behavior is being designed or reviewed. No GUI model is needed for standalone docs.
-- For delegated WRITE or multi-wave execution also use `$graph-protocol`. For broad external research needed to decide something substantive, use `$evidence-research` in a scoped research subgraph. Do not research by default.
+- Use `$graph-protocol` for every task. Use `$evidence-research` in a scoped research subgraph when a material decision needs broad external evidence.
 - Apply `$requirements` to retrieve controlling behavior and discover material new, ambiguous, or high-consequence workflows. For proof-scoped behavior, retrieve approved `proofs/<rule>/LAWS.bend` first: the law is the formal product specification, not a second PRD. Use the Question Gate for blocking unknowns; a drafted law is not approved merely because it type-checks. Apply `$adr` where needed. SEO is limited to genuinely indexable public pages; accessibility requirements match the platform and relevant standard.
 
 ## Design decisions and change sequencing

@@ -7,17 +7,22 @@ description: Orchestrate software delivery from a user goal through requirements
 
 **Authority:** only the main Codex agent orchestrates, schedules, integrates, and accepts; workers execute bounded nodes. Approved behavior stays with `$requirements`/reviewed `LAWS.bend`, domain and GUI contracts with their skills, verification with `$testing`, and delegated A/E/R with `$graph-protocol`. No worker approves new product policy.
 
+Run research, planning, and build by default for software changes. Select and
+read the applicable skills before their stage. Reassess them as scope changes
+and pass the applicable method to each worker in R.
+
 ```text
-Inspect goal/repo → Retrieve authorized behavior
-  → Choose graph depth for the task
-    → Discover/design only needed scope + unknowns
-      → Tidy first | after | later | never (only if justified)
-        → Define A/E/R and delegate ready nodes
-          → Verify (incl. independent review for delegated WRITE)
-            → Reconcile observed A/E/R + actual changes
-              → Local scope: commit and report verified result unless requested uncommitted
-              → Authorized delivery: merge to trunk → verify cleanup → report
+Research → inspect requirements, source, and existing checks
+  → Plan → define A/E/R, dependency gates, and verification
+    → Build → dispatch ready nodes, verify, review, and integrate
+      → Local scope: commit and report verified result unless requested uncommitted
+      → Authorized delivery: merge to trunk → verify cleanup → report
 ```
+
+Use external research where it resolves a material uncertainty. Scale the plan
+from a single inline node to a schema-3 graph. Proceed into authorized build
+after planning unless the user requested a plan only or a decision or approval
+blocks the affected work.
 
 ## Classification and design
 
