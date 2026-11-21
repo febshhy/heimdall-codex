@@ -43,16 +43,21 @@ results or blockers. While work is running, the coordinator uses independent
 ready work or native subagent completion notifications. Keep shell access for
 an independent Sol reviewer limited to inspection of the evidence.
 
-- Use the role `heimdall_reasoning`, pinned to `gpt-6.2-sol`, for ambiguous
-  requirements, non-trivial design, diagnosis without an established cause,
-  risk decisions, and reviews that require judgment. `heimdall_reviewer`
-  is pinned to the same model for independent review.
-- Use `heimdall_routine`, pinned to `gpt-6-luna`, for scoped
-  fact collection, writing from a settled brief, implementation from a settled
-  design, running commands and tests, and reporting recorded results.
-- Split mixed work at the decision boundary. Sol returns a decision or plan.
-  Luna executes the settled work. Unexpected results that require a new
-  decision return to Sol.
+- **Use Sol when a decision is needed.** Examples include interpreting ambiguous
+  requirements, reconciling conflicting evidence, choosing among designs with
+  material tradeoffs, diagnosing a failure with competing causes, and deciding
+  whether evidence supports acceptance. Use `heimdall_reasoning` (`gpt-6.2-sol`)
+  when that decision needs a separate assignment. Use `heimdall_reviewer`
+  (`gpt-6.2-sol`) for required independent review.
+- **Use Luna when the inputs, method, and success criteria are settled.** Use
+  `heimdall_routine` (`gpt-6-luna`) to collect facts, draft from a brief,
+  implement an accepted plan, run checks, apply a specified recovery, and
+  report observed results. Task size alone does not determine the model.
+- Split mixed nodes at the decision boundary. Luna supplies the facts, Sol
+  resolves the decision, and Luna executes the resulting plan. If a result
+  falls outside the agreed procedure, Luna returns the evidence and the
+  decision needed. Sol resolves it or raises it with the user if the decision
+  belongs to them.
 - Supply a self-contained task and disable history forking on every launch. If the required role or model is unavailable,
   stop the affected work and report the blocker. Model substitution and
   solo completion are prohibited.
@@ -80,9 +85,10 @@ scope changes and include the relevant methods in each worker's A/E/R packet.
 1. **Research.** Inspect the relevant requirements, repository files, and
    existing checks. Delegate bounded fact collection to Luna when ready. Use
    external evidence when a material assumption needs it.
-2. **Plan.** Sol turns the findings into a Graph Protocol plan before
-   implementation. Define the scope, evidence, worker roles, and dependencies.
-   A simple task can use one inline A/E/R node.
+2. **Plan.** Sol owns the Graph Protocol plan before implementation and makes
+   any material decisions. Luna can prepare A/E/R from settled instructions.
+   Define scope, evidence, worker roles, and dependencies. A simple task can
+   use one inline A/E/R node.
 3. **Build.** Dispatch eligible Luna work, then verify, review, and integrate
    through the existing gates. Continue from an authorized plan into execution
    automatically. Honor explicit plan-only requests, material decisions that
