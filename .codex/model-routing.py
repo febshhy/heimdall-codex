@@ -81,7 +81,18 @@ def handle(event):
                     "reason": "Heimdall requires gpt-6.2-sol for the coordinator and the pinned model for each subagent role.",
                 }
         case "PreToolUse":
-            if event.get("tool_name") in ("Bash", "apply_patch", "Edit", "Write"):
+            tool_name = event.get("tool_name")
+            if isinstance(tool_name, str) and tool_name.startswith("mcp__"):
+                if (
+                    event.get("agent_id")
+                    and event.get("model") == LUNA
+                    and event.get("agent_type") == "heimdall_routine"
+                ):
+                    return {}
+                return deny(
+                    "Operational MCP tools must be run by the GPT-6 Luna role heimdall_routine."
+                )
+            if tool_name in ("Bash", "apply_patch", "Edit", "Write"):
                 if (
                     event.get("agent_id")
                     and event.get("model") == LUNA

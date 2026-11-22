@@ -36,11 +36,17 @@ acceptance. Delegated WRITEs require independent Sol review and
 `scripts/factory validate`. Report a blocker when no substantive Luna assignment
 is eligible. A Luna launch receipt records a launch only.
 
-The Sol coordinator owns decisions, scheduling, and integration. Delegate
-shell execution, edits, tests, Git operations, CLI polling, and process
-monitoring to Luna. Luna owns command sessions through completion and reports
-results or blockers. While work is running, the coordinator uses independent
-ready work or native subagent completion notifications.
+Sol owns decisions and native agent orchestration. Luna executes operational
+tools, including web and MCP tools, shell commands, edits, tests, Git operations,
+and process monitoring. Luna owns command sessions through completion and
+reports results or blockers. Sol receives native subagent completion
+notifications and, when no independent work is ready, waits passively for the
+completion event. Do not poll snapshots to check whether an agent has completed.
+Process monitoring means observing a command or process Luna owns. Waiting for
+an agent completion event is orchestration and remains with Sol.
+
+Hosted WebSearch and other native tools that the runtime does not emit to a
+hook are policy-only. The hook cannot enforce routing for those tools.
 
 For factory review, read-only means assessing a supplied evidence packet. The
 reviewer has no shell or edit assignment. A Luna collector independent of the
@@ -223,7 +229,13 @@ For actual UI construction or consequential review, route behavior/state to `$gu
 
 Use trunk-based development. Branch from current trunk (`main` in this repo),
 keep task branches short-lived, and integrate through a PR. Give concurrent
-writers separate worktrees. The coordinator owns cleanup after merge.
+writers separate worktrees. GitOps here means repository delivery: fetch the
+trunk, create a bounded task branch, commit only scoped verified files, push
+the task branch and open a PR, merge only the exact approved head, verify it on
+trunk, and clean up the task branch. Sol owns the integration decision. Luna
+performs the Git operations. Deploy automation is used only when it already
+exists or the project authorizes it. Do not add a deployment pipeline as part
+of repository delivery.
 
 Commit verified task changes before reporting completion unless the user
 explicitly requests an uncommitted result. Stage only task-owned changes.
@@ -232,8 +244,9 @@ PR path unless the user limits delivery to local work.
 
 When asked to push or deliver repository changes, the coordinator treats that
 as authorization for the routine PR path through merge and confirmation, unless
-the user explicitly limits delivery. Routine PRs need independent agent review
-and passing checks.
+the user explicitly limits delivery. Luna runs the Git commands after Sol has
+accepted the scoped change and required evidence. Routine PRs need independent
+agent review and passing checks.
 They do not need a human approval when hosting rules permit agent-led merge.
 Read the [Git and Pull-Request Procedure](.agents/skills/repository-work/references/GIT_AND_PR.md)
 for the integration branch (default `main`), evidence dependencies, and merge
@@ -244,8 +257,10 @@ authorized release or tagging task. If host policy blocks an agent-led merge,
 report the blocker and leave the PR open.
 
 Before reporting delivery complete, verify the merge commit is on trunk and
-check both local and remote refs for the task branch. A queued merge, an open
-PR, or a task branch still awaiting safe cleanup means delivery is pending.
+check both local and remote refs for the task branch. Luna performs the
+verification and safe cleanup after Sol accepts the merge evidence. A queued
+merge, an open PR, or a task branch still awaiting safe cleanup means delivery
+is pending.
 
 <!-- Heimdall Bend2: begin -->
 ## Bend 2 law-first specification (when selected and available)
