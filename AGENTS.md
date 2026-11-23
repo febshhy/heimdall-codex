@@ -239,22 +239,30 @@ of repository delivery.
 
 Commit verified task changes before reporting completion unless the user
 explicitly requests an uncommitted result. Stage only task-owned changes.
-In the `febshhy/heimdall-codex` repository, finish on `main` through the routine
-PR path unless the user limits delivery to local work.
+For tracked changes in this `febshhy/heimdall-codex` repository, completion
+requires the routine PR path through a verified merge to GitHub `main`, local
+`main` sync, and safe task-ref/worktree cleanup. A local-only result is not a
+delivery fallback. If the user explicitly limits a task to local work, report
+that requested scope without claiming repository delivery is complete. These
+repository-specific steps do not impose this project's delivery policy on
+unrelated target repositories when Heimdall skills are installed there.
 
 When asked to push or deliver repository changes, the coordinator treats that
 as authorization for the routine PR path through merge and confirmation, unless
-the user explicitly limits delivery. Luna runs the Git commands after Sol has
-accepted the scoped change and required evidence. Routine PRs need independent
-agent review and passing checks.
+the user explicitly limits delivery. For tracked changes in this repository,
+the routine PR path is the required completion path. Luna runs the Git commands
+after Sol has accepted the scoped change and required evidence. Routine PRs need
+independent review and passing required checks tied to the exact head being
+merged.
 They do not need a human approval when hosting rules permit agent-led merge.
 Read the [Git and Pull-Request Procedure](.agents/skills/repository-work/references/GIT_AND_PR.md)
 for the integration branch (default `main`), evidence dependencies, and merge
 gates. Reuse an assigned branch or worktree and preserve existing edits. A push
 is an intermediate step. Confirm the merge into the integration branch, then
-remove task-owned branches that are safe to delete. Create tags only for an
-authorized release or tagging task. If host policy blocks an agent-led merge,
-report the blocker and leave the PR open.
+remove task-owned branches that are safe to delete. A PR that is open, queued,
+or blocked by checks or host policy remains pending and is not delivery
+completion. Create tags only for an authorized release or tagging task. If host
+policy blocks an agent-led merge, report the blocker and leave the PR open.
 
 Before reporting delivery complete, verify the merge commit is on trunk and
 check both local and remote refs for the task branch. Luna performs the

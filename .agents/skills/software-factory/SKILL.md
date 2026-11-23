@@ -15,8 +15,8 @@ and pass the applicable method to each worker in R.
 Research → inspect requirements, source, and existing checks
   → Plan → define A/E/R, dependency gates, and verification
     → Build → dispatch ready nodes, verify, review, and integrate
-      → Local scope: commit and report verified result unless requested uncommitted
-      → Authorized delivery: merge to trunk → verify cleanup → report
+      → Follow the target repository's delivery policy and user scope
+        → Required delivery: merge to trunk → verify local sync and cleanup → report
 ```
 
 Use external research where it resolves a material uncertainty. Scale the plan
@@ -57,9 +57,12 @@ Smoke proof never qualifies. Law or normative-assumption changes return to opera
 
 ## Acceptance and report
 
-For authorized delivery, load the repository-work Git and PR procedure before
-creating a task branch. Local verification is an input to delivery. Keep the
-task active through independent review, verified trunk merge, and branch
-cleanup. Report a concrete blocker if any required step cannot finish.
+Follow the target repository's governing delivery policy. This installed skill
+does not impose the release repository's policy on other projects. When delivery
+is required, load the repository-work Git and PR procedure before creating a
+task branch. Local verification is an input to delivery. Keep the task active
+through independent review, verified trunk merge, local sync, and branch
+cleanup. An open, queued, or blocked PR remains pending. Report a concrete
+blocker if any required step cannot finish.
 
 Run the actual applicable build/lint/tests, inspect Git diff and independent delegated-WRITE review, then validate every planned node and schema-3 return. Reject missing evidence, contradicting observation, required but absent review, invalid graph, or failed checks. Graph comparison is not application correctness. Report changed paths, approved requirement coverage, executed commands/results, review/evidence, unresolved risks and approvals. Include source-derived call-graph slices when `AGENTS.md` requires them; mark stale/unverified evidence, use the project's inspected revision and keep logs in `.work/`. Never claim a command/proof ran without observation, delete required checks to save tokens, or copy full logs into worker prompts. `jq` is required by the controller; optional tools never change the A/E/R contract.

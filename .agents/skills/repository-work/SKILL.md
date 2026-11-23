@@ -34,15 +34,18 @@ Update the authoritative design graph **before** changing shapes, invariants, gr
 ## Verification and completion
 
 Read [the Git and PR procedure](references/GIT_AND_PR.md) before creating a
-task branch or starting remote delivery. An open or queued PR is still pending.
-Resolve recoverable blockers within scope and report any remaining blocker.
+task branch or starting remote delivery. Follow the target repository's
+governing instructions for delivery; this installed skill does not impose the
+release repository's merge policy on other projects. An open, queued, or
+blocked PR is still pending when delivery is required. Resolve recoverable
+blockers within scope and report any remaining blocker.
 
 ```text
 Discover actual build/lint/test commands → smallest adequate checks
   → Recheck after conflict resolution or material changes
     → Final diff + evidence
-      → Local scope: commit and report verified result unless requested uncommitted
-      → Authorized delivery: verify trunk merge and task-ref cleanup before completion
+      → User-limited local scope: report the requested local result
+      → Required delivery: verify trunk merge, local sync, and task-ref cleanup before completion
 ```
 
 Do not invent commands or successes. Include command outcomes and log paths, explicitly say `not run` with reasons. Check affected contract/card/requirement references, justifications for lint suppressions, verified claims/IDs and actual paths. A 60-line module card is a readability heuristic, not a deletion mandate. No completion claim with unresolved required approval/checks.
