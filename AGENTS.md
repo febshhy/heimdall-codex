@@ -2,15 +2,6 @@
 
 **The main Codex agent is the factory orchestrator.** The user describes a software outcome; Codex interprets requirements, plans the dependency graph, delegates bounded nodes, checks gates, integrates, verifies, and reports the result. Do not ask the user to select agent roles or manually run stages. The shell CLI observes approved orchestration but does not itself spawn agents or intervene in worker decisions.
 
-## Documentation ownership boundary
-
-The application `docs/` directory is reserved for **emerging end-user documents**.
-Never install, upgrade, delete, scaffold, or rewrite its contents as part of
-Heimdall setup or project discovery. Read existing documents only where permitted.
-Author a new or changed end-user document there solely when the user explicitly
-authorizes that documentation task and reviews its effect scope. Keep internal
-Heimdall requirements and lifecycle records outside `docs/`.
-
 ## Codex subagent runtime boundary
 
 For bounded engineering delegation, use the project-scoped roles below. For independent review, use the project-scoped `heimdall_reviewer` (`.codex/agents/heimdall_reviewer.toml`). Never assume a role label enforces read-only access or proves reviewer independence. Native Codex manages agent spawning; `scripts/factory` only observes lifecycle boundaries and validates evidence. **Only one active factory node may use a given Git worktree**. Use separate worktrees for simultaneous WRITE nodes and verify integration before acceptance; otherwise serialize nodes.
@@ -90,12 +81,6 @@ routing. Report missing hook coverage as a blocker before claiming enforcement.
 Use `heimdall_reviewer` for independent factory review. Built-in `/review`
 requires shell inspection, which this workflow routes to Luna.
 
-## Secret access and existing-project discovery
-
-Treat Heimdall credential metadata (`.heimdall/credential-names.json`) as **names only**, never a credential source. Never ask the user to paste API keys into agent chat or repo files. Do not read `.env`, `.env.*`, local tokens, cloud credential files, shell environment values, or private keys. Do not execute commands that print secrets (`env`, `printenv`, credential store dumps). This instruction reduces accidental reads; **it is not an OS security boundary**. An agent with unrestricted shell access and the same OS identity can still access readable files, environment variables, and processes. Actual value isolation requires a separate sandbox/identity and an outside-the-agent vault/proxy/tool that returns narrowly scoped results. See `docs/security/CREDENTIAL_BOUNDARY.md` in the Heimdall release.
-
-When adopting an existing codebase, install with `scripts/heimdall start` after inspecting the plan. Then use `$project-adoption` and `$software-design-thinking` to inspect actual source and report a relevant, evidence-backed call graph in the **Call Graph Output** format below. No language-specific scanner, automatic callgraph file, or inferred historical ADR is required. Preserve existing ADRs and end-user documents; writing project `docs/` requires a separate, explicit task approval. For a new project `scripts/heimdall start --project <path>` selects the correct mode; preview does not modify target files.
-
 ## Automatic software workflow
 
 For software creation, modification, or repair, start **research → plan →
@@ -161,6 +146,29 @@ commit is mandatory solely because this policy applies.
 **Handoff rule:** requirements define *what* is owed; domain, GUI and database methods design their respective *how*; Graph Protocol delegates *work*; Factory coordinates and checks evidence; Testing checks behavior. A downstream method may identify a missing or conflicting upstream decision. Return that question to its owner, preserve the known contract, and block only the affected work when the answer is material. Do not reconcile contradictory authorities by choosing whichever document was read last. Keep a UI `Submitting` state distinct from a domain `Paid` state, and pass typed domain commands/results across the boundary.
 
 This clarifies ownership. For small, well-specified work, keep delegation to the smallest substantive task and use the existing verification gates. The original canonical Software Design Thinking, GUI Design Thinking and Graph Protocol methods keep their full scope.
+
+<!-- Heimdall Bend2: begin -->
+## Bend 2 law-first specification (when selected and available)
+
+- For explicitly requested proof-first work, or material stable rules that justify formalization, use `$bend-proof`. **The reviewed `LAWS.bend` serves as the product specification for that proof scope**; do not write a duplicate PRD for the same laws. Draft laws from authorized intent, expose exact semantics and counterexamples, and obtain operator review of the formalization before treating it as binding. `SPEC.bend` may model pure behavior; `PROOF.bend` proves the laws over that model. Never change an accepted law or its normative assumptions merely to pass proof.
+- The proof gate must pass before implementing the corresponding production behavior, followed by conformance tests. Proofs over an abstract model do **not** verify the production implementation, IO, GUI, deployment or external services. Use ordinary requirements and tests for obligations that cannot be expressed faithfully as Bend laws; do not invent a law to satisfy a universal proof quota. A smoke proof alone is never product acceptance.
+
+<!-- Heimdall Bend2: end -->
+
+## Documentation ownership boundary
+
+The application `docs/` directory is reserved for **emerging end-user documents**.
+Never install, upgrade, delete, scaffold, or rewrite its contents as part of
+Heimdall setup or project discovery. Read existing documents only where permitted.
+Author a new or changed end-user document there solely when the user explicitly
+authorizes that documentation task and reviews its effect scope. Keep internal
+Heimdall requirements and lifecycle records outside `docs/`.
+
+## Secret access and existing-project discovery
+
+Treat Heimdall credential metadata (`.heimdall/credential-names.json`) as **names only**, never a credential source. Never ask the user to paste API keys into agent chat or repo files. Do not read `.env`, `.env.*`, local tokens, cloud credential files, shell environment values, or private keys. Do not execute commands that print secrets (`env`, `printenv`, credential store dumps). This instruction reduces accidental reads; **it is not an OS security boundary**. An agent with unrestricted shell access and the same OS identity can still access readable files, environment variables, and processes. Actual value isolation requires a separate sandbox/identity and an outside-the-agent vault/proxy/tool that returns narrowly scoped results. See `docs/security/CREDENTIAL_BOUNDARY.md` in the Heimdall release.
+
+When adopting an existing codebase, install with `scripts/heimdall start` after inspecting the plan. Then use `$project-adoption` and `$software-design-thinking` to inspect actual source and report a relevant, evidence-backed call graph in the **Call Graph Output** format below. No language-specific scanner, automatic callgraph file, or inferred historical ADR is required. Preserve existing ADRs and end-user documents; writing project `docs/` requires a separate, explicit task approval. For a new project `scripts/heimdall start --project <path>` selects the correct mode; preview does not modify target files.
 
 ## Call Graph Output — shared reporting contract
 
@@ -269,14 +277,6 @@ check both local and remote refs for the task branch. Luna performs the
 verification and safe cleanup after Sol accepts the merge evidence. A queued
 merge, an open PR, or a task branch still awaiting safe cleanup means delivery
 is pending.
-
-<!-- Heimdall Bend2: begin -->
-## Bend 2 law-first specification (when selected and available)
-
-- For explicitly requested proof-first work, or material stable rules that justify formalization, use `$bend-proof`. **The reviewed `LAWS.bend` serves as the product specification for that proof scope**; do not write a duplicate PRD for the same laws. Draft laws from authorized intent, expose exact semantics and counterexamples, and obtain operator review of the formalization before treating it as binding. `SPEC.bend` may model pure behavior; `PROOF.bend` proves the laws over that model. Never change an accepted law or its normative assumptions merely to pass proof.
-- The proof gate must pass before implementing the corresponding production behavior, followed by conformance tests. Proofs over an abstract model do **not** verify the production implementation, IO, GUI, deployment or external services. Use ordinary requirements and tests for obligations that cannot be expressed faithfully as Bend laws; do not invent a law to satisfy a universal proof quota. A smoke proof alone is never product acceptance.
-
-<!-- Heimdall Bend2: end -->
 
 ## Cost and context
 
