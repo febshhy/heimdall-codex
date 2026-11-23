@@ -125,20 +125,38 @@ Plan the PR work as dependencies with named outputs:
   run independently against the same candidate. If the head changes, repeat
   both. A subagent's verdict is review evidence, not a hosting-provider approval
   under another person's identity.
+- Use one independent Luna collector to prepare a compact candidate evidence
+  packet with the actual diff, relevant source or an exact source slice, the
+  candidate SHA, and observed required checks. Tie the packet to the base and
+  candidate SHAs. Keep the Sol review independent and have it consume this
+  packet. The controller may carry the same packet into routine delivery while
+  the base and candidate identities remain unchanged. If either identity
+  changes, refresh affected evidence and review the new head.
 - The coordinator resolves findings, checks review and test evidence against the
   current PR head, and confirms required host checks or merge-queue eligibility.
   For work using schema 3, keep the premerge candidate graph in its own record
   ending at candidate evidence. Run `scripts/factory validate` on that record
   before accepting the candidate. Pass the accepted reviewed head and candidate
   validation evidence as named inputs to a separate schema-3 delivery record.
-  That graph records merge followed by cleanup and is validated after both
-  observations are complete.
+  That graph records the host merge observation followed by final cleanup
+  verification and is validated after both observations are complete. Each
+  node takes its own start and finish snapshot. The graph does not require every
+  node to observe the same `HEAD`.
 - The accepted head authorizes the merge node within the task's remote scope.
   Use a head-checked merge or the configured merge queue. Observe the host's
-  merge result and record the PR URL and merge commit when available.
-- The coordinator takes the merge result into the cleanup node. That node
-  returns the verified trunk commit and the disposition of each task-owned
-  branch and worktree. Wait for queued merges before starting cleanup.
+  merge result in a HEAD-stable `RUN` node and record the PR URL and merge
+  commit when available. Accept that observation before starting local checkout
+  synchronization or task-ref cleanup.
+- After the host confirms the accepted head merged, the same authorized Luna
+  controller performs the fetch, checkout synchronization, and scoped ref
+  cleanup outside an active factory node and lease. Preserve each exact command
+  outcome in a named handoff to the final observation. Wait for queued merges
+  before starting cleanup. Then run a final HEAD-stable read-only node against
+  the post-sync worktree. It verifies the host merge, trunk and local checkout
+  sync, and safe disposition of task-owned local and remote refs. Never change
+  the worktree root or `HEAD` during a `READ` or `RUN` node. If a command
+  outcome or ref state differs from the accepted merge result, stop and return
+  that evidence for coordinator resolution.
 
 In the delegated A/E/R plan, A carries these outputs along dependency edges.
 E covers wrong scope or base, missing evidence, and misread acceptance criteria.

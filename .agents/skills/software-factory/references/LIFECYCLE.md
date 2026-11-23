@@ -42,3 +42,14 @@ Resolve material product ambiguity through the requirements skill.
 ## State
 
 In-session coordinator state is primary. For delegated writes, initialize schema 3 from a coordinator-approved plan, record one state/receipt per node with `scripts/factory begin/end/run` and reconcile with `scripts/factory validate`. Local evidence is not a trusted security attestation. Do not accept schema 2. Old graph schemas are unsupported. Re-run interrupted work in a new graph after investigating the partial state; never promote a running node to done by hand.
+
+Each factory node snapshots its worktree independently. `READ` and `RUN` nodes
+must keep the worktree root and `HEAD` unchanged between their own start and
+finish snapshots. A schema-3 graph may have different `HEAD` values across
+sequential nodes when authorized Git transitions occur between their leases.
+For delivery, first accept a HEAD-stable `RUN` observation of the host merge.
+The same authorized Luna controller can then perform checkout synchronization
+and scoped task-ref cleanup outside an active node and lease. Keep the exact
+command outcomes in a named handoff for a final HEAD-stable read-only node that
+verifies the host merge, trunk and local checkout sync, and task-ref disposition.
+Do not place checkout or ref transitions inside a `READ` or `RUN` node.
