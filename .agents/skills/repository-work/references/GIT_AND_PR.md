@@ -120,10 +120,11 @@ Plan the PR work as dependencies with named outputs:
 - The author (coordinator for small tasks, or a bounded WRITE worker) hands off
   the candidate commit, its scope, and relevant requirements.
 - A separate read-only reviewer inspects the candidate diff and returns findings
-  and a verdict tied to the reviewed commit. The coordinator verifies observed
-  test results. Review and test execution may run independently against the same
-  candidate. A subagent's verdict is review evidence, not a hosting-provider
-  approval under another person's identity.
+  and a verdict tied to the reviewed commit. Run required checks against that
+  exact candidate head and verify their observed results. Review and checks may
+  run independently against the same candidate. If the head changes, repeat
+  both. A subagent's verdict is review evidence, not a hosting-provider approval
+  under another person's identity.
 - The coordinator resolves findings, checks review and test evidence against the
   current PR head, and confirms required host checks or merge-queue eligibility.
   For work using schema 3, keep the premerge candidate graph in its own record
@@ -156,7 +157,8 @@ If the head changes, repeat review and verification for the new head. If the
 base changes, recheck the affected integration evidence against the current
 base or use the required merge queue. Fix actionable findings, rerun affected
 checks, and reevaluate the gate. Missing evidence or a host rule that prevents
-agent-led merge leaves the PR open. Report the blocking rule or failed check.
+agent-led merge leaves the PR open. An open, queued, or blocked PR is pending,
+not a completed delivery. Report the blocking rule or failed check.
 
 ## 6. Post-merge cleanup
 
@@ -166,10 +168,11 @@ works for squash merges, where the original task commits may be absent.
 
 After verification, delete the task-owned remote branch if the host has not
 already deleted it. Confirm it still points to the reviewed head and has no
-dependent PRs. Return the local checkout to the integration branch and
-fast-forward it when safe. Remove the local task branch and any task-created
-worktree only after checking for unrelated or uncommitted work. If cleanup would
-discard work or affect another task, preserve the branch and report the reason.
+dependent PRs. Return the local checkout to the integration branch, fetch it,
+and fast-forward local integration when safe. Verify it contains the reported
+merge commit. Remove the local task branch and any task-created worktree only
+after checking for unrelated or uncommitted work. If local sync or cleanup
+cannot finish safely, preserve affected work and report delivery as pending.
 Create tags only when the task explicitly authorizes a release or tag.
 
 Check local refs and query the remote directly after cleanup. Confirm the task

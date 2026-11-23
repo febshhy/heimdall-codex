@@ -32,9 +32,12 @@ Autonomous within an authorized task: reading, planning, local edits, running re
 
 A request to push or deliver authorizes the routine PR path through verified
 trunk merge and cleanup unless the user limits scope. Follow the repository-work
-Git and PR procedure. Obtain authorization for effects outside that scope,
-including deployments, releases, production data changes, and security policy
-changes. Resolve material product ambiguity through the requirements skill.
+Git and PR procedure and the target repository's governing delivery policy.
+Installed Heimdall guidance does not carry this release repository's policy into
+unrelated projects. An open, queued, or blocked PR remains pending when delivery
+is required. Obtain authorization for effects outside that scope, including
+deployments, releases, production data changes, and security policy changes.
+Resolve material product ambiguity through the requirements skill.
 
 ## State
 
