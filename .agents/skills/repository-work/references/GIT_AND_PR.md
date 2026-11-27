@@ -127,8 +127,14 @@ Plan the PR work as dependencies with named outputs:
   under another person's identity.
 - Use one independent Luna collector to prepare a compact candidate evidence
   packet with the actual diff, relevant source or an exact source slice, the
-  candidate SHA, and observed required checks. Tie the packet to the base and
-  candidate SHAs. Keep the Sol review independent and have it consume this
+  candidate SHA, and observed required checks. For schema-3 factory records,
+  use `candidate-capture` to bind base, HEAD, index state, and the complete
+  prospective Git tree. Capture the actual base-to-candidate diff. For a dirty
+  capture that is later committed, bind it with `candidate-bind` to the exact
+  later commit, captured parent, tree, and base before review. Tie check logs to
+  exact declared argv arrays and candidate identity. The review verdict names
+  the WRITE node, the independent reviewer owner, and candidate, diff, and
+  check digests. Keep the Sol review independent and have it consume this
   packet. The controller may carry the same packet into routine delivery while
   the base and candidate identities remain unchanged. If either identity
   changes, refresh affected evidence and review the new head.

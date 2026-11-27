@@ -41,7 +41,16 @@ Resolve material product ambiguity through the requirements skill.
 
 ## State
 
-In-session coordinator state is primary. For delegated writes, initialize schema 3 from a coordinator-approved plan, record one state/receipt per node with `scripts/factory begin/end/run` and reconcile with `scripts/factory validate`. Local evidence is not a trusted security attestation. Do not accept schema 2. Old graph schemas are unsupported. Re-run interrupted work in a new graph after investigating the partial state; never promote a running node to done by hand.
+In-session coordinator state is primary. New delegated graphs initialize schema 3 with the immutable `candidate-bound/v1` review marker. Record one state/receipt per node with `scripts/factory begin/end/run` and reconcile with `scripts/factory validate`. Review gates require candidate, check, and affirmative verdict evidence bound to the WRITE and reviewer owners. Local evidence is not a trusted security attestation. Do not accept schema 2. Historical markerless schema-3 graphs remain inspectable, but their review notes cannot authorize new acceptance. Re-run interrupted work in a new graph after investigating the partial state. Never promote a running node to done by hand.
+
+For review evidence, use `scripts/factory candidate-capture` to record the full
+prospective Git tree and diff. If the capture is dirty and will later be
+committed, use `candidate-bind` to verify the exact parent and tree, then obtain
+the verdict for the bound identity. Record check logs with exact declared argv
+arrays and SHA-256 digests. `review-check` can validate the evidence before
+dispatch. A review-gated `run` validates the same inputs before acquiring its
+lease. The accepted manifest, diff, check packet, verdict, and logs are copied
+to graph evidence and checked again by `validate` and dependent nodes.
 
 Each factory node snapshots its worktree independently. `READ` and `RUN` nodes
 must keep the worktree root and `HEAD` unchanged between their own start and

@@ -72,8 +72,12 @@ def valid_node:
   (.delegation|valid_subgraph($n.domain));
 def valid_plan:
   . as $p |
-  type=="object" and only(["schema_version","planned_nodes","plan_sha256","repository_id"]) and
+  type=="object" and only(["schema_version","planned_nodes","plan_sha256","repository_id","review_contract"]) and
   (.schema_version|type=="number" and .==3) and
+  (if has("review_contract") then .review_contract=="candidate-bound/v1" else true end) and
+  (if .review_contract=="candidate-bound/v1" then
+    all($p.planned_nodes[]; .gate!="review" or (.verifies|length==1))
+   else true end) and
   (.planned_nodes|type=="array" and length>0 and all(.[];valid_node) and (map(.id)|distinct)) and
   (all($p.planned_nodes[]; . as $n |
     all($n.depends_on[]; . as $d | ($d!=$n.id) and any($p.planned_nodes[]; .id==$d)) and
