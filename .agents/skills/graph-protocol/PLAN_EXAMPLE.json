@@ -1,5 +1,6 @@
 {
   "schema_version": 3,
+  "review_contract": "candidate-bound/v1",
   "planned_nodes": [
     {
       "id": "N1",
