@@ -161,6 +161,8 @@ commit is mandatory solely because this policy applies.
 
 This clarifies ownership. For small, well-specified work, keep delegation to the smallest substantive task and use the existing verification gates. The original canonical Software Design Thinking, GUI Design Thinking and Graph Protocol methods keep their full scope.
 
+**Ephemeral task evidence invariant:** ADR, testing, and security task notes may be written only after observing relevant evidence, only when useful, and only as ignored `.work/` artifacts. Never plan these task notes as deliverables or commit them. Preserve Graph Protocol `R.verification` and required evidence. This rule does not alter existing end-user documents or actual project security guidance, which remain authoritative within their scope and follow existing authorization and ownership rules. Never author or scaffold unit tests; run existing checks and executable boundary checks where appropriate. Do not plan a separate task artifact for ADR rationale, test strategy, or security findings.
+
 <!-- Heimdall Bend2: begin -->
 ## Bend 2 law-first specification (when selected and available)
 
