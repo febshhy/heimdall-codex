@@ -10,13 +10,13 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HOOK = ROOT / ".codex" / "model-routing.py"
+HOOK = ROOT / ".codex" / "model-routing.sh"
 
 
 class RoutingHookTests(unittest.TestCase):
     def run_hook(self, event):
         result = subprocess.run(
-            [sys.executable, str(HOOK)],
+            ["bash", str(HOOK)],
             input=json.dumps(event),
             text=True,
             capture_output=True,
@@ -77,6 +77,7 @@ class RoutingHookTests(unittest.TestCase):
         del event["tool_input"]["task_name"]
         self.assert_denied(event)
         self.assert_denied(self.spawn_event(task_name="  "))
+        self.assert_allowed(self.spawn_event(task_name="日本語任务"))
 
     def test_allows_routine_operational_tools(self):
         for tool_name in ("Bash", "apply_patch", "mcp__files__read"):
@@ -110,6 +111,14 @@ class RoutingHookTests(unittest.TestCase):
             {"hook_event_name": "PreToolUse", "tool_name": "Read"}
         )
 
+    def test_malformed_and_non_object_input_are_noops(self):
+        for raw in ("{", "null", "[]", '"text"'):
+            with self.subTest(raw=raw):
+                result = subprocess.run(
+                    ["bash", str(HOOK)], input=raw, text=True, capture_output=True, check=True
+                )
+                self.assertEqual(json.loads(result.stdout), {})
+
 
 @unittest.skipIf(tomllib is None, "tomllib config assertions require Python 3.11+")
 class RuntimeConfigTests(unittest.TestCase):
@@ -129,6 +138,7 @@ class RuntimeConfigTests(unittest.TestCase):
             hook["matcher"], "^(collaborationspawn_agent|Bash|apply_patch|mcp__.*)$"
         )
         self.assertEqual(hook["hooks"][0]["timeout"], 5)
+        self.assertIn("exec bash \"$root/.codex/model-routing.sh\"", hook["hooks"][0]["command"])
 
     def test_role_models_effort_and_review_capabilities_are_configured(self):
         roles = {}
