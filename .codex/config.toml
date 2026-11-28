@@ -18,5 +18,5 @@ matcher = "^(collaborationspawn_agent|Bash|apply_patch|mcp__.*)$"
 
 [[hooks.PreToolUse.hooks]]
 type = "command"
-command = 'root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; exec python3 "$root/.codex/model-routing.py"'
+command = 'root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; exec bash "$root/.codex/model-routing.sh"'
 timeout = 5
