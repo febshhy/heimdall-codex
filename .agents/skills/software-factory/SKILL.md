@@ -24,6 +24,16 @@ from a single inline node to a schema-3 graph. Proceed into authorized build
 after planning unless the user requested a plan only or a decision or approval
 blocks the affected work.
 
+The release repository targets Codex CLI 0.172.0 with V2 multi-agent enabled.
+Start subagents with explicit `agent_type`, a non-empty `task_name`, and
+`fork_turns = "none"`; role TOML owns model and reasoning-effort defaults. Do
+not pass model or reasoning-effort overrides, use V1 compatibility inputs, or
+recursively delegate. If Luna is unavailable for an otherwise eligible substantive assignment,
+report a blocker. A conversational task with no substantive Luna assignment
+proceeds without spawning one; orchestration rules do not require a launch on
+every turn. Use native completion events instead of polling status
+snapshots.
+
 ## Classification and design
 
 Use `$graph-protocol` by default for every task.
@@ -43,6 +53,18 @@ Plan A/E/R → scripts/factory init --plan <plan.json> --graph .work/graphs/<tas
 ```
 
 Dispatch only ready nodes; missing/failed/disputed predecessors block successors. READ/RUN use `run --return -- <argv>`; WRITE uses `prompt`, `begin` and `end --return`. Use the project-scoped roles in AGENTS.md. Independent review uses `heimdall_reviewer`. Check different identities and actual observations: a role label does not enforce independence. **Factory leases an entire Git worktree:** serialize nodes in one worktree, even disjoint files. Parallel WRITE requires prepared isolated worktrees, disjoint ownership and deliberate integration. Retry a failed node at most once after relevant correction. Every task requires a substantive subagent result. Apply the role/model routing in the governing AGENTS.md. Read `references/LIFECYCLE.md` for examples and critical release boundary.
+
+In the correct trusted local Codex CLI session, inspect `/hooks` and confirm
+the project hook is enabled. Review the changed command and resolved target
+there before trusting routing. The synchronous `PreToolUse` hook covers only
+V2 `collaborationspawn_agent`, `Bash`, `apply_patch`, and `mcp__*` calls that
+match its configured matcher; hosted WebSearch and native tools without matching
+hook events remain policy-only. Hook and role settings are guardrails, not proof of role
+identity or replacements for host sandbox and approval controls. The reasoning
+and reviewer profiles disable shell, permission requests, apps, and plugins
+through supported feature switches; custom agent files do not override the
+parent sandbox. The reviewer keeps evidence-only review in its instructions.
+Report capability limits instead of treating role policy as permissions.
 
 ## Selected Bend2 gate
 

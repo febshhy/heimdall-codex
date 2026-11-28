@@ -1,63 +1,12 @@
-"""Codex CLI hooks for the Heimdall release repository."""
+"""Route covered Codex tools to the configured Heimdall roles."""
 
-import hashlib
 import json
-import os
-from pathlib import Path
-import stat
 import sys
-import tempfile
 
 SOL = "gpt-6.2-sol"
 LUNA = "gpt-6-luna"
-MODELS = {
-    "heimdall_reasoning": SOL,
-    "heimdall_reviewer": SOL,
-    "heimdall_routine": LUNA,
-}
-
-
-def valid_spawn(event):
-    args = event.get("tool_input")
-    return (
-        event.get("model") == SOL
-        and not event.get("agent_id")
-        and isinstance(args, dict)
-        and isinstance(args.get("agent_type"), str)
-        and args["agent_type"] in MODELS
-        and args.get("model", MODELS[args["agent_type"]]) == MODELS[args["agent_type"]]
-        and args.get("fork_context", False) is False
-        and args.get("fork_turns", "none") == "none"
-        and ("task_name" not in args or args.get("fork_turns") == "none")
-    )
-
-
-def spawn_succeeded(event):
-    result = event.get("tool_response")
-    if isinstance(result, str):
-        try:
-            result = json.loads(result)
-        except json.JSONDecodeError:
-            return False
-    if not isinstance(result, dict):
-        return False
-    task_name = event["tool_input"].get("task_name")
-    if task_name is not None:
-        return isinstance(task_name, str) and bool(task_name) and result.get("task_name") == f"/root/{task_name}"
-    return isinstance(result.get("agent_id"), str) and bool(result["agent_id"])
-
-
-def receipt(event):
-    session, turn = event.get("session_id"), event.get("turn_id")
-    if not all(isinstance(value, str) and value for value in (session, turn)):
-        return None
-    directory = Path(tempfile.gettempdir()) / f"heimdall-routing-{os.getuid()}"
-    directory.mkdir(mode=0o700, exist_ok=True)
-    info = directory.lstat()
-    if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077:
-        raise PermissionError("Unsafe Heimdall routing receipt directory")
-    key = hashlib.sha256(json.dumps([session, turn]).encode()).hexdigest()
-    return directory / key
+ROLES = {"heimdall_reasoning", "heimdall_reviewer", "heimdall_routine"}
+OPERATIONAL_TOOLS = {"Bash", "apply_patch"}
 
 
 def deny(reason):
@@ -70,67 +19,60 @@ def deny(reason):
     }
 
 
+def is_operational_tool(tool_name):
+    return tool_name in OPERATIONAL_TOOLS or (
+        isinstance(tool_name, str) and tool_name.startswith("mcp__")
+    )
+
+
+def valid_spawn(event):
+    args = event.get("tool_input")
+    return (
+        event.get("model") == SOL
+        and not event.get("agent_id")
+        and isinstance(args, dict)
+        and isinstance(args.get("agent_type"), str)
+        and args["agent_type"] in ROLES
+        and isinstance(args.get("task_name"), str)
+        and bool(args["task_name"].strip())
+        and args.get("fork_turns") == "none"
+        and "model" not in args
+        and "reasoning_effort" not in args
+        and "fork_context" not in args
+    )
+
+
+def valid_routine_agent(event):
+    return (
+        bool(event.get("agent_id"))
+        and event.get("agent_type") == "heimdall_routine"
+        and event.get("model") == LUNA
+    )
+
+
 def handle(event):
-    match event.get("hook_event_name"):
-        case "UserPromptSubmit":
-            role = event.get("agent_type")
-            expected = MODELS.get(role) if event.get("agent_id") else SOL
-            if expected is None or event.get("model") != expected:
-                return {
-                    "decision": "block",
-                    "reason": "Heimdall requires gpt-6.2-sol for the coordinator and the pinned model for each subagent role.",
-                }
-        case "PreToolUse":
-            tool_name = event.get("tool_name")
-            if isinstance(tool_name, str) and tool_name.startswith("mcp__"):
-                if (
-                    event.get("agent_id")
-                    and event.get("model") == LUNA
-                    and event.get("agent_type") == "heimdall_routine"
-                ):
-                    return {}
-                return deny(
-                    "Operational MCP tools must be run by the GPT-6 Luna role heimdall_routine."
-                )
-            if tool_name in ("Bash", "apply_patch", "Edit", "Write"):
-                if (
-                    event.get("agent_id")
-                    and event.get("model") == LUNA
-                    and event.get("agent_type") == "heimdall_routine"
-                ):
-                    return {}
-                return deny("Delegate this operation to the GPT-6 Luna role heimdall_routine.")
-            if not valid_spawn(event):
-                return deny(
-                    "Use the Sol coordinator and the pinned role model. Disable history forking."
-                )
-        case "PostToolUse":
-            if (
-                valid_spawn(event)
-                and event["tool_input"]["agent_type"] == "heimdall_routine"
-                and spawn_succeeded(event)
-            ):
-                path = receipt(event)
-                if path is not None:
-                    path.touch(mode=0o600)
-        case "Stop":
-            try:
-                path = receipt(event)
-                if path is not None:
-                    path.unlink()
-                    return {}
-            except OSError:
-                pass
-            reason = (
-                "No successful GPT-6 Luna routine subagent spawn was recorded "
-                "for this turn. Delegate substantive work and use its result, "
-                "or report the runtime blocker if delegation is unavailable."
-            )
-            if event.get("stop_hook_active"):
-                return {"continue": False, "stopReason": reason, "systemMessage": reason}
-            return {"decision": "block", "reason": reason}
+    if event.get("hook_event_name") != "PreToolUse":
+        return {}
+
+    tool_name = event.get("tool_name")
+    if tool_name == "collaborationspawn_agent":
+        if valid_spawn(event):
+            return {}
+        return deny(
+            "Use the Sol coordinator, a configured Heimdall role, explicit fork_turns=none, and a task_name; role model and effort come from role configuration."
+        )
+
+    if is_operational_tool(tool_name):
+        if valid_routine_agent(event):
+            return {}
+        return deny("Operational tools must be run by the GPT-6 Luna heimdall_routine role.")
+
     return {}
 
 
 if __name__ == "__main__":
-    print(json.dumps(handle(json.load(sys.stdin))))
+    try:
+        event = json.load(sys.stdin)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        event = {}
+    print(json.dumps(handle(event)))

@@ -287,7 +287,7 @@ review_validate_checks(){
     case "$resolved" in "$root"/*) :;; *) fail REVIEW 'check log resolves outside candidate worktree';; esac
     sha=$(jq -r --arg rel "$rel" '.checks[]|select(.log_path==$rel)|.log_sha256' "$checks")
     [[ $(review_hash "$root/$rel") == "$sha" ]] || fail INTEGRITY 'check log digest mismatch'
-  done < <(jq -rj '.checks[]|.log_path,"\u0000"' "$checks")
+  done < <(jq -rj '.checks[] | .log_path,"\u0000"' "$checks")
   jq -e 'all(.checks[]; (keys|sort)==["argv","exit_code","log_path","log_sha256"] and (.argv|type=="array" and length>0 and all(.[]; type=="string")) and .exit_code==0 and (.log_path|type=="string") and (.log_sha256|test("^[a-f0-9]{64}$"))) and ([.checks[].argv]|unique|length)==(.checks|length) and ([.checks[].log_path]|unique|length)==(.checks|length)' "$checks" >/dev/null || fail REVIEW 'check evidence has an invalid, duplicate, or failed result'
   local expected actual
   expected=$(jq -cS --arg node "$node" '.planned_nodes[]|select(.id==$node)|.delegation.R.verification|unique|sort' "$GRAPH")
@@ -332,7 +332,7 @@ review_copy_artifacts(){
   while IFS= read -r -d '' logrel; do
     [[ ! -e "$EV/$basename.check.$index.log" ]] || fail LIFECYCLE 'review check log artifact already exists for this node'
     index=$((index+1))
-  done < <(jq -rj '.checks[].log_path,"\u0000"' "$checks")
+  done < <(jq -rj '.checks[] | .log_path,"\u0000"' "$checks")
   index=0
   cp -- "$candidate" "$candidate_artifact" || { review_cleanup_artifacts "$node"; fail EVIDENCE 'cannot copy candidate manifest'; }
   cp -- "$(jq -r .diff_path "$candidate")" "$diff_artifact" || { review_cleanup_artifacts "$node"; fail EVIDENCE 'cannot copy candidate diff'; }
@@ -343,7 +343,7 @@ review_copy_artifacts(){
     local dest="$EV/$basename.check.$index.log"; cp -- "$root/$logrel" "$dest" || { review_cleanup_artifacts "$node"; fail EVIDENCE 'cannot copy review check log'; }
     copied_logs=$(jq -cn --argjson prior "$copied_logs" --arg file "${dest##*/}" --arg sha "$(review_hash "$dest")" '$prior+[{file:$file,sha256:$sha}]')
     index=$((index+1))
-  done < <(jq -rj '.checks[].log_path,"\u0000"' "$checks")
+  done < <(jq -rj '.checks[] | .log_path,"\u0000"' "$checks")
   jq -cn --argjson review "$review_json" --arg candidate "${candidate_artifact##*/}" \
     --arg candidate_sha "$(review_hash "$candidate_artifact")" --arg diff "${diff_artifact##*/}" \
     --arg diff_sha "$(review_hash "$diff_artifact")" --arg checks "${checks_artifact##*/}" \

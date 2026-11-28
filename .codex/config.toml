@@ -7,33 +7,16 @@ sandbox_mode = "workspace-write"
 
 [agents]
 enabled = true
-max_depth = 1
 max_concurrent_threads_per_session = 8
-default_subagent_reasoning_effort = "high"
 
 [features.multi_agent_v2]
-tool_namespace = "collaboration"
-
-[[hooks.UserPromptSubmit]]
-[[hooks.UserPromptSubmit.hooks]]
-type = "command"
-command = 'python3 "$(git rev-parse --show-toplevel)/.codex/model-routing.py"'
+enabled = true
+expose_spawn_agent_model_overrides = false
 
 [[hooks.PreToolUse]]
-matcher = "^(spawn_agent|collaborationspawn_agent|Bash|apply_patch|Edit|Write|mcp__.*)$"
+matcher = "^(collaborationspawn_agent|Bash|apply_patch|mcp__.*)$"
 
 [[hooks.PreToolUse.hooks]]
 type = "command"
-command = 'python3 "$(git rev-parse --show-toplevel)/.codex/model-routing.py"'
-
-[[hooks.PostToolUse]]
-matcher = "^(spawn_agent|collaborationspawn_agent)$"
-
-[[hooks.PostToolUse.hooks]]
-type = "command"
-command = 'python3 "$(git rev-parse --show-toplevel)/.codex/model-routing.py"'
-
-[[hooks.Stop]]
-[[hooks.Stop.hooks]]
-type = "command"
-command = 'python3 "$(git rev-parse --show-toplevel)/.codex/model-routing.py"'
+command = 'root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; exec python3 "$root/.codex/model-routing.py"'
+timeout = 5

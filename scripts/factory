@@ -39,12 +39,12 @@ read_node(){ TASK=$(node); [[ -n $TASK ]] || fail CONTRACT "unknown node $NODE";
 checkgraph(){
   [[ -f "$GRAPH" && -d "$EV" ]] || fail GRAPH 'graph not initialized';
   contract 'valid_plan' "$GRAPH" >/dev/null || fail CONTRACT 'invalid plan';
-  local h expected; h=$(jq -cS 'if .review_contract=="candidate-bound/v1" then {schema_version,planned_nodes,repository_id,review_contract} else {schema_version,planned_nodes,repository_id} end' "$GRAPH" | hash_text);
+  [[ $(jq -r '.review_contract // empty' "$GRAPH") == "$REVIEW_CONTRACT" ]] || fail CONTRACT 'graph requires candidate-bound/v1 review contract';
+  local h expected; h=$(jq -cS '{schema_version,planned_nodes,repository_id,review_contract}' "$GRAPH" | hash_text);
   expected=$(jq -r '.plan_sha256 // empty' "$GRAPH");
   [[ -n "$expected" && "$expected" == "$h" ]] || fail INTEGRITY 'approved graph changed';
   [[ -n $(jq -r '.repository_id // empty' "$GRAPH") ]] || fail CONTRACT 'missing repository identity';
-  REVIEW_COMPAT=$(jq -r '.review_contract // "legacy"' "$GRAPH")
-  [[ $REVIEW_COMPAT != "$REVIEW_CONTRACT" ]] || review_validate_ordering "$GRAPH"
+  review_validate_ordering "$GRAPH"
 }
 checkroot(){ ROOT=$(repo "$ROOT"); local id; id=$(repoid "$ROOT"); [[ $id == "$(jq -r .repository_id "$GRAPH")" ]] || fail REPOSITORY 'worktree is from a different repository'; }
 # Files outside root are permitted. Inside the worktree, evidence must be Git-ignored.
@@ -117,7 +117,7 @@ compare_return(){
     include "contract"; ($plan[0].planned_nodes[]|select(.id==$id)) as $task | valid_return($task)' "$ret" >/dev/null || fail RETURN 'delegated and implemented A/E/R or output contracts differ'
 }
 verify_done(){
-  local id=$1 purpose=${2:-accept} s r ret rh
+  local id=$1 s r ret rh
   s=$(statefile "$id"); r=$(receiptfile "$id"); ret=$(returnfile "$id")
   [[ -f "$s" && -f "$r" && -f "$ret" ]] || fail EVIDENCE "missing artifacts: $id"
   jq -e '.status=="done"' "$s" >/dev/null || fail GATE "predecessor $id not done"
@@ -132,12 +132,10 @@ verify_done(){
   local logsha logp; logsha=$(jq -r '.check.log_sha256 // empty' "$r"); logp=$(logfile "$id")
   if [[ -n $logsha ]]; then [[ -f $logp && $logsha == "$(hash "$logp")" ]] || fail INTEGRITY "log altered: $id"; fi
   jq -e '.errors|length==0' "$r" >/dev/null || fail EVIDENCE "errors reported: $id"
-  if [[ $REVIEW_COMPAT == "$REVIEW_CONTRACT" && $(jq -r --arg id "$id" '.planned_nodes[]|select(.id==$id)|.mode' "$GRAPH") == WRITE ]]; then
+  if [[ $(jq -r --arg id "$id" '.planned_nodes[]|select(.id==$id)|.mode' "$GRAPH") == WRITE ]]; then
     review_validate_write_finish "$r" "$id"
   fi
   if [[ $(jq -r --arg id "$id" '.planned_nodes[]|select(.id==$id)|.gate' "$GRAPH") == review ]]; then
-    if [[ $REVIEW_COMPAT != "$REVIEW_CONTRACT" && $purpose == inspect ]]; then return 0; fi
-    [[ $REVIEW_COMPAT == "$REVIEW_CONTRACT" ]] || fail LEGACY_REVIEW "historical review node $id is inspectable but cannot authorize new acceptance"
     review_verify_receipt "$r" "$id"
   fi
 }
@@ -162,7 +160,13 @@ prompt_packet(){
   jq -n --arg id "$NODE" --slurpfile plan "$GRAPH" --slurpfile received "$received" '
     ($plan[0].planned_nodes[]|select(.id==$id)) as $t |
     {node_id:$t.id,task:$t.task,domain:$t.domain,owner:$t.owner,mode:$t.mode,
-     requires:$t.requires,received:$received,produces:$t.produces,delegated:$t.delegation}' | jq -S .
+     requires:$t.requires,received:$received,produces:$t.produces,write_set:$t.write_set,
+     delegated:$t.delegation,
+     return_contract:{fields:["node_id","implemented","outputs","summary"],
+       node_id:{type:"string",value:$t.id},
+       implemented:{type:"object",must_match:"delegated"},
+       outputs:{type:"object",exactly:$t.produces,values:{type:"string",nonblank:true,forbidden_characters:["\u0000"]}},
+       summary:{type:"string",nonblank:true,forbidden_characters:["\u0000"]}}}' | jq -S .
   rm -f "$received"
 }
 # Persist state under graph lock; file snapshots are outside this critical section.
@@ -226,7 +230,7 @@ complete_node(){
     checked=$(jq -cn --argjson argv "$RUN_ARGV" --argjson code "$RUN_EXIT" --arg log "${logfile_path##*/}" --arg sha "$logsha" '{argv:$argv,exit_code:$code,log:$log,log_sha256:$sha}')
     [[ $RUN_EXIT -eq 0 ]] || error_kind='command_failed'
   fi
-  if [[ $mode == WRITE && -z $error_kind && $REVIEW_COMPAT == "$REVIEW_CONTRACT" ]]; then
+  if [[ $mode == WRITE && -z $error_kind ]]; then
     finish_tree=$(review_write_finish_binding "$ROOT" "$(jq -r .head "$before")" "$NODE" "$after" "$changed")
   fi
   # Canonicalize the worker return before deriving its receipt hash.
@@ -289,7 +293,7 @@ tool_capabilities(){
 COMMAND=${1:-}; [[ -n "$COMMAND" ]] || fail USAGE 'factory <tools|init|candidate-capture|candidate-bind|review-check|prompt|ready|compare|begin|end|run|validate|status|abort|log|proof|version>'
 shift || :
 GRAPH='.work/graphs/task.json'; ROOT="$PWD"; PLAN=''; NODE=''; RETURN=''; REVIEW=''; REASON=''; TIMEOUT='600'; SUITE=''; ARGV=()
-BASE=''; MANIFEST=''; DIFF_OUT=''; COMMIT=''; OUTPUT=''; REVIEW_CANDIDATE=''; REVIEW_CHECKS=''; REVIEW_VERDICT=''; RUN_REVIEW='null'; REVIEW_COMPAT='legacy'
+BASE=''; MANIFEST=''; DIFF_OUT=''; COMMIT=''; OUTPUT=''; REVIEW_CANDIDATE=''; REVIEW_CHECKS=''; REVIEW_VERDICT=''; RUN_REVIEW='null'
 if [[ $COMMAND == log && $# -gt 0 ]]; then SUITE=$1; shift; fi
 while (($#)); do
   case "$1" in
@@ -339,7 +343,6 @@ case "$COMMAND" in
         command -v timeout >/dev/null || fail DEPENDENCY 'GNU timeout required for command execution'
         RUN_REVIEW='null'
         if [[ $(jq -r .gate <<<"$TASK") == review ]]; then
-          [[ $REVIEW_COMPAT == "$REVIEW_CONTRACT" ]] || fail LEGACY_REVIEW 'historical schema-3 graphs cannot use legacy review evidence for new acceptance'
           [[ -n $REVIEW_CANDIDATE && -n $REVIEW_CHECKS && -n $REVIEW_VERDICT ]] || fail REVIEW 'review-gated run requires --candidate-manifest, --check-evidence, and --review-verdict'
           RUN_REVIEW=$(review_preflight "$NODE" "$REVIEW_CANDIDATE" "$REVIEW_CHECKS" "$REVIEW_VERDICT")
         fi
@@ -372,11 +375,9 @@ case "$COMMAND" in
     esac;;
   validate)
     checkgraph
-    legacy_review=false
-    [[ $REVIEW_COMPAT == "$REVIEW_CONTRACT" ]] || legacy_review=$(jq -r 'any(.planned_nodes[];.gate=="review")' "$GRAPH")
     local_bad=0
     while IFS= read -r id; do
-      if [[ $legacy_review == true ]]; then verify_done "$id" inspect; else verify_done "$id"; fi
+      verify_done "$id"
       s=$(statefile "$id"); r=$(receiptfile "$id")
       [[ $(jq -r .start_order "$r") -lt $(jq -r .finish_order "$r") ]] || fail ORDER "invalid event sequence for $id"
       jq -e '(.before.files) as $x | (.after.files) as $y |
@@ -394,9 +395,7 @@ case "$COMMAND" in
         [[ $(jq -r .finish_order "$(receiptfile "$dep")") -lt $(jq -r .start_order "$r") ]] || fail ORDER "dependency ordering $dep->$id";
       done < <(jq -r '.depends_on[]' <<<"$task")
     done < <(jq -r '.planned_nodes[].id' "$GRAPH")
-    if [[ $legacy_review == true ]]; then
-      echo 'GRAPH INSPECTED: historical schema-3 observations are consistent; review evidence cannot authorize new acceptance'
-    else echo 'GRAPH PASS: delegated A/E/R matches implemented A/E/R; local observation consistent'; fi;;
+    echo 'GRAPH PASS: delegated A/E/R matches implemented A/E/R; local observation consistent';;
   status)
     checkgraph
     states=$(mktemp)
@@ -441,14 +440,12 @@ case "$COMMAND" in
     echo "PRODUCT PROOFS PASSED: $proof_count law/proof pair(s)";;
   candidate-capture)
     checkgraph; checkroot
-    [[ $REVIEW_COMPAT == "$REVIEW_CONTRACT" ]] || fail LEGACY_REVIEW 'candidate capture requires a newly initialized candidate-bound graph'
     review_candidate_capture;;
   candidate-bind)
     [[ -n $MANIFEST && -n $COMMIT && -n $OUTPUT ]] || fail USAGE 'candidate-bind requires --manifest, --commit, and --output'
     review_candidate_bind "$MANIFEST" "$COMMIT" "$OUTPUT";;
   review-check)
     checkgraph; checkroot
-    [[ $REVIEW_COMPAT == "$REVIEW_CONTRACT" ]] || fail LEGACY_REVIEW 'historical schema-3 graphs cannot authorize new review acceptance'
     [[ -n $REVIEW_CANDIDATE && -n $REVIEW_CHECKS && -n $REVIEW_VERDICT ]] || fail USAGE 'review-check requires --candidate-manifest, --check-evidence, and --review-verdict'
     review_preflight "$NODE" "$REVIEW_CANDIDATE" "$REVIEW_CHECKS" "$REVIEW_VERDICT"; echo 'REVIEW PASS';;
   *) fail USAGE "unknown command $COMMAND";;
