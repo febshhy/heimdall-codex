@@ -8,7 +8,7 @@
 
 Run the installer in **Linux Bash**. On Windows, run the installer in **WSL**.
 
-You need Bash 4.4+, Python 3.9+, Git, `jq`, and standard Linux tools such as `flock`, `sha256sum`, `timeout`, `find`, `sort`, and core utilities to run the installer. You also need a signed-in Codex client: [Codex CLI](https://github.com/openai/codex), the [Codex IDE extension](https://developers.openai.com/codex/ide), Codex in the ChatGPT desktop app, or Codex Cloud on the web. The CLI is optional. Cloud use also requires Cloud access and a connected repository that the task environment can use.
+The direct `bash install.sh` installer requires Bash 4.4+, Git, `jq`, and system utilities including `flock`, `sha256sum`, `timeout`, `find`, `sort`, and core utilities. Python 3.9+ is used by the normal `scripts/heimdall` lifecycle commands in this guide. Heimdall's shell hook uses Bash and `jq`. You also need a signed-in Codex client: [Codex CLI](https://github.com/openai/codex), the [Codex IDE extension](https://developers.openai.com/codex/ide), Codex in the ChatGPT desktop app, or Codex Cloud on the web. The CLI is optional. Cloud use also requires Cloud access and a connected repository that the task environment can use.
 
 Check the main tools:
 
@@ -136,13 +136,28 @@ Setup refuses unsafe nested repositories and populated directories without Git.
 
 ## Start Codex
 
-After project installation, open the target repository in a local Codex client (CLI, IDE extension, or desktop app in Local or Worktree mode). Trust the project so the client can load its project-scoped settings and hooks.
+Open the target repository in a local Codex client (CLI, IDE extension, or
+desktop app in Local or Worktree mode). Trust the project so the client can
+load its project-scoped settings and hooks. Start a **new Codex session** after
+installation or update. Restart an existing session to load current
+instructions and agent profiles.
 
-The `.codex/config.toml` in the Heimdall clone sets `workspace-write`, `on-request`, and `auto_review` defaults when you open that clone as a trusted project in Codex CLI. Automatic review can approve or deny eligible approval requests. It does not remove sandbox or managed policy restrictions. CLI options can override configuration, and organization or system managed requirements can constrain it.
+The installer ships Heimdall's `.codex/agents/` profiles into the target
+project. Configure its Codex settings, hooks, and execpolicy rules separately.
+The clone's `.codex/config.toml` sets `workspace-write`, `on-request`, and
+`auto_review` defaults when you open that clone as a trusted project in Codex
+CLI. Its `PreToolUse` hook invokes `.codex/model-routing.sh` from the Git root
+of the current directory. Review the changed hook in Codex's `/hooks` view
+before trusting it. Opening the Heimdall clone does not configure your
+application. Automatic review can approve or deny eligible approval requests.
+It does not remove sandbox or managed policy restrictions. CLI options can
+override configuration, and organization or system managed requirements can
+constrain it.
 
 In the desktop app, select **Approve for me** from the current chat's permissions control when it is available.
 
-The Heimdall installer does not copy the clone's `.codex/config.toml` into your application, so these defaults do not apply there. To opt into automatic review for an application with Codex CLI, run this from the application repository:
+To opt into automatic review for an application with Codex CLI, run this from
+the application repository:
 
 ```bash
 codex --approve-for-me
@@ -212,6 +227,7 @@ bash .heimdall/install.sh --remove
 | Saved plan is stale | Regenerate and review the plan before applying. |
 | Installation was interrupted | Use `status`, then inspect the reported recovery action. |
 | Codex cannot find the guidance | Verify the installation and start a new Codex session in the intended repository. |
+| An obsolete Stop hook reports that `model-routing.py` is missing | Press Ctrl+C if Codex offers to retry the failed hook. Exit Codex, relaunch it from the repository, and review the current hook in `/hooks`. |
 
 ## Security and permissions
 

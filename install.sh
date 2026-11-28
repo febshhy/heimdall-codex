@@ -41,7 +41,9 @@ Usage: bash install.sh [--project DIR] [--integrate-agents] [--with-bend2|--with
   --help               Show this help
 
 Run this script from a locally inspected Heimdall release. It does not download
-or execute remote code. Conflicting files and edited managed files are preserved.
+or execute remote code. It installs Heimdall files, including Codex agent
+profiles. Configure project settings, hooks, and execpolicy rules separately.
+Conflicting files and edited managed files are preserved.
 HELP
 }
 fail(){ printf 'Heimdall: %s\n' "$*" >&2; exit 1; }
@@ -495,5 +497,6 @@ for rel in "${DELETED[@]}"; do
 done
 note "Installed ${#RELS[@]} files in $TARGET (instructions: $ACTIVE_AGENTS; Bend2: $([[ $BEND2 -eq 1 ]] && echo enabled || echo disabled))"
 printf 'Heimdall: Verify: cd -- %q && bash .heimdall/install.sh --verify\n' "$TARGET"
-note "Start locally: open '$TARGET' in Codex CLI, the IDE extension, or the ChatGPT desktop app"
+note 'Installed Heimdall files, including Codex agent profiles. Configure project settings, hooks, and execpolicy rules separately.'
+note "Start locally: open '$TARGET' in a new Codex session, or restart an existing session to load updated instructions and profiles"
 note "Codex web/Cloud: commit and push this repository, then open its connected remote version"
