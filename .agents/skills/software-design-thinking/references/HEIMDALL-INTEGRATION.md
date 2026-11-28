@@ -15,7 +15,7 @@ The authoritative software method is `../SKILL.md`, supplied by the project owne
 
 - Prefer a deep module: modest public interface, meaningful hidden behavior, stable contract. A single implementation may still merit an interface when the boundary itself is real. Delete pass-through wrappers that add no contract or responsibility.
 - Audit duplicated rules, repeated parameter groups, scattered small changes, misplaced owners, hubs and dependencies on volatile modules. A high fan-in module can be legitimate when stable and narrow.
-- Classify consequential decisions by reversal cost. For difficult-to-reverse data, public contracts, or destructive operations, record an ADR and a migration/rollback strategy; use `$software-factory` critical handling when applicable.
+- Classify consequential decisions by reversal cost. For difficult-to-reverse data, public contracts, or destructive operations, after evidence, optionally record decision rationale in ignored `.work/` only when useful; never plan or commit a task ADR note. Preserve necessary migration/rollback strategy; use `$software-factory` critical handling when applicable.
 - When updating persisted data or public interfaces, prefer staged expand → migrate → contract with explicit compatibility windows, measurement and rollback/recovery plans where feasible. Do not presume all changes can be reversed after data loss.
 
 ## Evaluate consequential structure decisions
@@ -45,7 +45,7 @@ exercise for routine local edits.
 ## Premortem, security and compatibility
 
 - For a full/risky design, name likely production failures and map each to an invariant, error strategy, verification check, or accepted risk.
-- At real trust boundaries, examine spoofing, tampering, repudiation, disclosure, denial/exhaustion and privilege escalation where applicable. Record durable findings in project-owned `docs/security/` if it exists.
+- At real trust boundaries, examine spoofing, tampering, repudiation, disclosure, denial/exhaustion and privilege escalation where applicable. Task security findings may be recorded only after observing relevant evidence, only when useful, and only under ignored `.work/`; never plan or commit a task finding document. Preserve actual project security guidance and separately authorized end-user documentation under their existing ownership and approval rules.
 - Public APIs can have undocumented consumers. Inspect usage, versioning, error behavior, ordering and timing before changing an observable contract. Never silently change another owner's model.
 
 ## Verification and optional formal proof

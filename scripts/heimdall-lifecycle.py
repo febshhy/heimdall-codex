@@ -443,7 +443,8 @@ def discovery(project):
     print('Produce a source-grounded call graph using the Call Graph Output format in AGENTS.md.')
     print('Capture shapes, state, invariants, errors, effects, needs, and owners.')
     print('Distinguish Known / Unknown / Assumption / Decision; label proposed edges.')
-    print('Follow $adr: create a Proposed ADR only for a consequential decision; do not invent historical rationale.')
+    print('Follow $adr: never plan a task ADR note; after evidence, record consequential rationale only when useful in an ignored .work/ note, never commit it. Do not invent historical rationale.')
+    print('Task-specific test and security notes may be recorded only after relevant evidence, only when useful, and only as ignored .work/ artifacts; never plan or commit them. Preserve Graph Protocol R.verification and required evidence.')
     print('Do not load secret values or execute project code before permission review.')
     print('Project:', project)
 

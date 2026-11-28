@@ -26,9 +26,7 @@ Prefer one primary check per claim at a stable boundary; do not duplicate a clai
 | Smoke | One critical end-to-end path per thin slice. |
 | Regression | Reproduce a real bug before its fix; retain its check. |
 | Fuzz/property | Invariants, state sequences, parsers or combinatorial domains; define property, generators, reproducible seeds, bounded runtime. Bend is optional. |
-| Unit | Important pure-decision edge cases that boundary tests cannot isolate efficiently; say why. |
-
-**Guards:** link each check to a requirement, invariant, meaningful claim/card ID or defect. Review orphan tests and unverified requirements; lack of a card ID alone never justifies deleting a useful regression. Test through supported entry points unless internals are a required contract. Do not mock the module under test. Stand-ins are only for external boundaries, and cannot establish behavior of the real boundary.
+**Guards:** do not author or scaffold unit tests. Link checks to a requirement, invariant, meaningful claim/card ID or defect. Review orphan tests and unverified requirements; lack of a card ID alone never justifies deleting a useful regression. Test through supported entry points unless internals are a required contract. Do not mock the module under test. Stand-ins are only for external boundaries, and cannot establish behavior of the real boundary. Run existing checks and executable boundary checks where appropriate. Task-specific testing notes may be written only after observing relevant evidence, only when useful, and only as ignored `.work/` artifacts. Never plan or commit such notes. Do not create a standalone planned test document; preserve Graph Protocol `R.verification` and required evidence.
 
 ## Execution and reporting
 
@@ -44,7 +42,7 @@ Read AGENTS.md Commands + actual repository configuration
   → Re-run affected checks after consequential changes
 ```
 
-Never invent commands. If tooling is missing, use the project's native stack to scaffold an appropriate check when authorized; record its command under `Commands`. For noisy commands use `scripts/factory log <suite-name> -- <command> [args...]`; inspect saved failures. Do not rerun just to display output; rerun failures to investigate nondeterminism and keep both logs. Flakiness is a defect. Report `not run` with reason rather than implying success.
+Never invent commands. If tooling is missing, report that limitation and use available executable boundary checks; do not scaffold unit tests. Record established commands under `Commands` when that documentation is in scope. For noisy commands use `scripts/factory log <suite-name> -- <command> [args...]`; inspect saved failures. Do not rerun just to display output; rerun failures to investigate nondeterminism and keep both logs. Flakiness is a defect. Report `not run` with reason rather than implying success.
 
 ### Structural changes
 
