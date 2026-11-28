@@ -76,11 +76,12 @@ missing, stale, or disputed, even when the CLI reports readiness.
 
 ## Candidate-bound review contract
 
-`init` stamps newly created schema-3 graphs with the immutable
+`init` stamps newly created schema-3 graphs with the required immutable
 `review_contract: "candidate-bound/v1"` marker and includes it in
-`plan_sha256`. Do not remove or change it. Historical schema-3 graphs without
-the marker can still use `status` and inspect their receipts. Their historical
-review notes do not authorize new review-gated acceptance.
+`plan_sha256`. Graph loading requires this marker and validates the same
+immutable digest, proof, review, and worktree identities for every graph. Do not
+remove or change it. Markerless historical schema-3 graphs are rejected; create
+a fresh initialized graph to continue work.
 
 Candidate capture and review use these commands:
 

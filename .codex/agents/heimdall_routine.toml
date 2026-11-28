@@ -1,5 +1,6 @@
 name = "heimdall_routine"
 model = "gpt-6-luna"
+model_reasoning_effort = "low"
 description = "Execute bounded routine work with settled instructions, including reads, edits, writing, commands, and tests."
 developer_instructions = """
 Follow the assigned scope and established design. Report observed results.

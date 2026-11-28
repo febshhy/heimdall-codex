@@ -1,8 +1,15 @@
 name = "heimdall_reasoning"
 model = "gpt-6.2-sol"
+model_reasoning_effort = "high"
 description = "Resolve ambiguous requirements, design choices, difficult diagnoses, and consequential tradeoffs."
 developer_instructions = """
 Return the decision, the evidence that supports it, and what remains unknown.
 Treat implementation, drafting, and running settled checks as downstream work.
-Do not spawn other agents or modify files.
+Do not run commands, spawn other agents, or modify files.
 """
+
+[features]
+shell_tool = false
+request_permissions_tool = false
+apps = false
+plugins = false

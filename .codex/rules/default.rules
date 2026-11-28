@@ -77,27 +77,30 @@ prefix_rule(
     not_match = ["git status", "rg --files ."],
 )
 
-# Never permit commands that explicitly target the filesystem root for deletion.
+# Exact argv scope: forbid `rm -rf /`, `rm -fr /`, and either ordering of the
+# long `--recursive` / `--force` options when the target is `/`.
 prefix_rule(
-    pattern = ["rm", "-rf", "/"],
+    pattern = ["rm", ["-rf", "-fr"], "/"],
     decision = "forbidden",
     justification = "Never recursively delete the filesystem root.",
-    match = ["rm -rf /", "rm -rf / --no-preserve-root"],
+    match = ["rm -rf /", "rm -fr /"],
+    not_match = ["rm -rf build/cache", "rm -f /"],
 )
 
 prefix_rule(
-    pattern = ["rm", "--recursive", "--force", "/"],
+    pattern = ["rm", ["--recursive", "--force"], ["--force", "--recursive"], "/"],
     decision = "forbidden",
     justification = "Never recursively delete the filesystem root.",
-    match = ["rm --recursive --force /"],
+    match = ["rm --recursive --force /", "rm --force --recursive /"],
+    not_match = ["rm --recursive --force build/cache"],
 )
 
 # Ask before broad deletion, discarding Git work, or changing remote history.
 prefix_rule(
-    pattern = ["rm", "-rf"],
+    pattern = ["rm", ["-rf", "-fr"]],
     decision = "prompt",
     justification = "Confirm the exact target before recursive forced deletion.",
-    match = ["rm -rf build/cache"],
+    match = ["rm -rf build/cache", "rm -fr build/cache"],
     not_match = ["rm -f generated.tmp"],
 )
 

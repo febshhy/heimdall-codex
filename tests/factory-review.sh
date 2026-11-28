@@ -33,7 +33,7 @@ write_plan(){
   "review_contract":"candidate-bound/v1",
   "planned_nodes":[
     {"id":"N1","domain":"factory_runtime","owner":"heimdall_routine","mode":"WRITE","task":"write scoped fixture changes","depends_on":[],"requires":[],"produces":["change_set"],"write_set":["src/"],"verifies":[],"gate":"none","delegation":{"A":{"nodes":[{"id":"write","domain":"factory_runtime","inputs":[],"outputs":["change_set"]}],"edges":[]},"E":[{"at":"write","kind":"wrong_context","mitigation":"Keep every candidate path inside src"}],"R":{"method":"repository-work and testing","verification":[["git","diff","--check"]],"why":"Provide a bounded change to verify","inputs":["approved fixture change"]}}},
-    {"id":"N2","domain":"quality","owner":"heimdall_reviewer","mode":"RUN","task":"review exact candidate evidence","depends_on":["N1"],"requires":[{"from":"N1","output":"change_set"}],"produces":["review_result"],"write_set":[],"verifies":["N1"],"gate":"review","delegation":{"A":{"nodes":[{"id":"inspect","domain":"quality","inputs":["change_set"],"outputs":["review_result"]}],"edges":[]},"E":[{"at":"inspect","kind":"missing_input","mitigation":"Stop when candidate or checks are absent"}],"R":{"method":"independent read-only review and testing","verification":[["git","diff","--check"]],"why":"Accept only the reviewed candidate and exact check evidence","inputs":["N1.change_set"]}}},
+    {"id":"N2","domain":"quality","owner":"heimdall_reviewer","mode":"RUN","task":"review exact candidate evidence","depends_on":["N1"],"requires":[{"from":"N1","output":"change_set"}],"produces":["review_result"],"write_set":[],"verifies":["N1"],"gate":"review","delegation":{"A":{"nodes":[{"id":"inspect","domain":"quality","inputs":["change_set"],"outputs":["review_result"]}],"edges":[]},"E":[{"at":"inspect","kind":"missing_input","mitigation":"Stop when candidate or checks are absent"}],"R":{"method":"independent read-only review and testing","verification":[["git","diff","--check"],["true"]],"why":"Accept only the reviewed candidate and exact check evidence","inputs":["N1.change_set"]}}},
     {"id":"N3","domain":"quality","owner":"heimdall_routine","mode":"RUN","task":"consume accepted review","depends_on":["N2"],"requires":[{"from":"N2","output":"review_result"}],"produces":["result"],"write_set":[],"verifies":[],"gate":"none","delegation":{"A":{"nodes":[{"id":"consume","domain":"quality","inputs":["review_result"],"outputs":["result"]}],"edges":[]},"E":[{"at":"consume","kind":"missing_input","mitigation":"Require the accepted review result"}],"R":{"method":"graph-protocol","verification":[["true"]],"why":"Demonstrate downstream consumption after accepted review","inputs":["N2.review_result"]}}}
   ]
 }
@@ -51,10 +51,13 @@ negative(){
 }
 make_candidate_evidence(){
   local root=$1 candidate=$2 checks_out=$3 verdict_out=$4 log_rel=$5
+  local second_log="${log_rel%.log} check two.log"
   (cd "$root" && git diff --check) >"$root/$log_rel" 2>&1
+  (cd "$root" && true) >"$root/$second_log" 2>&1
   jq -n --arg id "$(jq -r .identity_sha256 "$candidate")" --arg manifest "$(hash "$candidate")" \
     --arg log "$log_rel" --arg sha "$(hash "$root/$log_rel")" \
-    '{schema_version:1,candidate_identity:$id,candidate_manifest_sha256:$manifest,checks:[{argv:["git","diff","--check"],exit_code:0,log_path:$log,log_sha256:$sha}]}' >"$checks_out"
+    --arg second "$second_log" --arg second_sha "$(hash "$root/$second_log")" \
+    '{schema_version:1,candidate_identity:$id,candidate_manifest_sha256:$manifest,checks:[{argv:["git","diff","--check"],exit_code:0,log_path:$log,log_sha256:$sha},{argv:["true"],exit_code:0,log_path:$second,log_sha256:$second_sha}]}' >"$checks_out"
   jq -n --arg identity "$(jq -r .identity_sha256 "$candidate")" --arg manifest "$(hash "$candidate")" \
     --arg diff "$(jq -r .diff_sha256 "$candidate")" --arg checks "$(hash "$checks_out")" \
     '{schema_version:1,verdict:"accept",node_id:"N2",write_node:"N1",reviewer_owner:"heimdall_reviewer",candidate_identity:$identity,candidate_manifest_sha256:$manifest,evidence_sha256:$diff,checks_sha256:$checks,findings:[]}' >"$verdict_out"
@@ -94,8 +97,14 @@ graph="$fx/.work/graphs/review.json"
 plan="$fx/.work/plan.json"
 run init --root "$fx" --plan "$plan" --graph "$graph" >/dev/null
 jq -e '.review_contract=="candidate-bound/v1"' "$graph" >/dev/null || fail 'init did not stamp review compatibility marker'
+packet="$fx/.work/N1.prompt.json"
+run prompt --root "$fx" --graph "$graph" --node N1 >"$packet"
+jq -e '.write_set==["src/"] and .return_contract.fields==["node_id","implemented","outputs","summary"] and .return_contract.implemented.must_match=="delegated" and .return_contract.outputs.exactly==["change_set"] and .return_contract.outputs.values.nonblank==true and .return_contract.outputs.values.forbidden_characters==["\u0000"] and .return_contract.summary.nonblank==true and .return_contract.summary.forbidden_characters==["\u0000"]' "$packet" >/dev/null || fail 'prompt packet omitted write set or exact machine return contract'
+ok 'prompt packet declares owned paths and exact return shape'
 n1return="$fx/.work/N1.json"
 make_return "$plan" N1 '$candidate' "$n1return"
+run compare --root "$fx" --graph "$graph" --node N1 --return "$n1return" >/dev/null
+ok 'declared A/E/R return and nonempty output compare successfully'
 run begin --root "$fx" --graph "$graph" --node N1 >/dev/null
 printf 'staged\n' >"$fx/src/stage.txt"
 git -C "$fx" add src/stage.txt
@@ -144,11 +153,14 @@ jq -e --arg commit "$candidate_commit" '.dirty==false and .commit_sha==$commit a
 ok 'clean committed candidate binds directly to HEAD'
 
 log="$fx/.work/review/check.log"
+second_log="$fx/.work/review/check two.log"
 (cd "$fx" && git diff --check) >"$log" 2>&1
+(cd "$fx" && true) >"$second_log" 2>&1
 checks="$fx/.work/review/checks.json"
 jq -n --arg id "$(jq -r .identity_sha256 "$bound")" --arg manifest "$(hash "$bound")" \
   --arg log '.work/review/check.log' --arg sha "$(hash "$log")" \
-  '{schema_version:1,candidate_identity:$id,candidate_manifest_sha256:$manifest,checks:[{argv:["git","diff","--check"],exit_code:0,log_path:$log,log_sha256:$sha}]}' >"$checks"
+  --arg second '.work/review/check two.log' --arg second_sha "$(hash "$second_log")" \
+  '{schema_version:1,candidate_identity:$id,candidate_manifest_sha256:$manifest,checks:[{argv:["git","diff","--check"],exit_code:0,log_path:$log,log_sha256:$sha},{argv:["true"],exit_code:0,log_path:$second,log_sha256:$second_sha}]}' >"$checks"
 verdict="$fx/.work/review/verdict.json"
 make_verdict(){
   local output=$1 decision=${2:-accept} owner=${3:-heimdall_reviewer}
@@ -208,14 +220,18 @@ return3="$fx/.work/N3.json"
 make_return "$plan" N3 '$consumed' "$return3"
 run run --root "$fx" --graph "$graph" --node N3 --return "$return3" -- true >/dev/null
 run validate --root "$fx" --graph "$graph" >/dev/null
-jq -e '.candidate_review.verdict=="accept" and .check.argv==["git","diff","--check"]' "$fx/.work/graphs/review.evidence/N2.receipt.json" >/dev/null || fail 'receipt lacks accepted evidence or exact argv'
+jq -e '.candidate_review.verdict=="accept" and .check.argv==["git","diff","--check"] and (.candidate_review.artifacts.logs|length)==2' "$fx/.work/graphs/review.evidence/N2.receipt.json" >/dev/null || fail 'receipt lacks accepted evidence or both copied logs'
+expected_logs=$(jq -c '[.checks[].log_sha256]|sort' "$checks")
+actual_logs=$(jq -c '[.candidate_review.artifacts.logs[].sha256]|sort' "$fx/.work/graphs/review.evidence/N2.receipt.json")
+[[ "$expected_logs" == "$actual_logs" ]] || fail 'copied check log digests differ from both declared source logs'
+
 ok 'review run records exact argv, accepted evidence, and opens downstream dependency'
 
 # Once a review node is done, a rejected rerun must not replace its archived
 # review artifacts before the lifecycle guard notices the completed state.
-saved_artifacts=$(sha256sum "$fx/.work/graphs/review.evidence/N2.candidate.json" "$fx/.work/graphs/review.evidence/N2.diff" "$fx/.work/graphs/review.evidence/N2.checks.json" "$fx/.work/graphs/review.evidence/N2.verdict.json" "$fx/.work/graphs/review.evidence/N2.check.0.log")
+saved_artifacts=$(sha256sum "$fx/.work/graphs/review.evidence/N2.candidate.json" "$fx/.work/graphs/review.evidence/N2.diff" "$fx/.work/graphs/review.evidence/N2.checks.json" "$fx/.work/graphs/review.evidence/N2.verdict.json" "$fx/.work/graphs/review.evidence/N2.check.0.log" "$fx/.work/graphs/review.evidence/N2.check.1.log")
 negative 'completed review node cannot rerun' run run --root "$fx" --graph "$graph" --node N2 --candidate-manifest "$bound" --check-evidence "$checks" --review-verdict "$verdict" --return "$return2" --review-note repeated -- git diff --check
-[[ "$saved_artifacts" == "$(sha256sum "$fx/.work/graphs/review.evidence/N2.candidate.json" "$fx/.work/graphs/review.evidence/N2.diff" "$fx/.work/graphs/review.evidence/N2.checks.json" "$fx/.work/graphs/review.evidence/N2.verdict.json" "$fx/.work/graphs/review.evidence/N2.check.0.log")" ]] || fail 'rerun corrupted completed review artifacts'
+[[ "$saved_artifacts" == "$(sha256sum "$fx/.work/graphs/review.evidence/N2.candidate.json" "$fx/.work/graphs/review.evidence/N2.diff" "$fx/.work/graphs/review.evidence/N2.checks.json" "$fx/.work/graphs/review.evidence/N2.verdict.json" "$fx/.work/graphs/review.evidence/N2.check.0.log" "$fx/.work/graphs/review.evidence/N2.check.1.log")" ]] || fail 'rerun corrupted completed review artifacts'
 ok 'completed review artifacts remain unchanged after rejected rerun'
 
 # Corrupt a copied review manifest after cp returns; the final pre-execution
@@ -326,8 +342,7 @@ legacy_sha=$(jq -cS --arg id "$legacy_repo" '{schema_version,planned_nodes,repos
 jq -cS --arg id "$legacy_repo" --arg sha "$legacy_sha" '. + {repository_id:$id,plan_sha256:$sha}' "$legacy/.work/legacy-plan.json" >"$legacy_graph"
 mkdir -p "$legacy/.work/graphs/old.evidence"
 printf '0\n' >"$legacy/.work/graphs/old.evidence/sequence"
-run status --root "$legacy" --graph "$legacy_graph" >/dev/null
-negative 'legacy graph cannot capture new review' run candidate-capture --root "$legacy" --graph "$legacy_graph" --node N1 --base "$(git -C "$legacy" rev-parse HEAD)" --manifest "$legacy/.work/old-candidate.json" --diff-out "$legacy/.work/old.diff"
-ok 'historical markerless schema-3 graph remains inspectable without review fallback'
+negative 'markerless schema-3 graph rejected at load' run status --root "$legacy" --graph "$legacy_graph"
+ok 'markerless graph rejected before status or review evidence'
 
 printf 'PASS: candidate-bound review regression suite\n'

@@ -41,7 +41,7 @@ Resolve material product ambiguity through the requirements skill.
 
 ## State
 
-In-session coordinator state is primary. New delegated graphs initialize schema 3 with the immutable `candidate-bound/v1` review marker. Record one state/receipt per node with `scripts/factory begin/end/run` and reconcile with `scripts/factory validate`. Review gates require candidate, check, and affirmative verdict evidence bound to the WRITE and reviewer owners. Local evidence is not a trusted security attestation. Do not accept schema 2. Historical markerless schema-3 graphs remain inspectable, but their review notes cannot authorize new acceptance. Re-run interrupted work in a new graph after investigating the partial state. Never promote a running node to done by hand.
+In-session coordinator state is primary. New delegated graphs initialize schema 3 with the immutable `candidate-bound/v1` review marker. Record one state/receipt per node with `scripts/factory begin/end/run` and reconcile with `scripts/factory validate`. Review gates require candidate, check, and affirmative verdict evidence bound to the WRITE and reviewer owners. Local evidence is not a trusted security attestation. Do not accept schema 2. Graph loading requires the candidate-bound/v1 marker; markerless historical graphs are rejected and cannot authorize acceptance. Re-run interrupted work in a new graph after investigating the partial state. Never promote a running node to done by hand.
 
 For review evidence, use `scripts/factory candidate-capture` to record the full
 prospective Git tree and diff. If the capture is dirty and will later be

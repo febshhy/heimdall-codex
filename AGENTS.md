@@ -4,6 +4,12 @@
 
 ## Codex subagent runtime boundary
 
+This repository targets Codex CLI 0.172.0 and its V2 multi-agent runtime.
+Enable `features.multi_agent_v2`; do not use a V1 compatibility path. Give
+each spawn a non-empty `task_name`, an explicit `agent_type`, and
+`fork_turns = "none"`. Role TOML owns each role's model and reasoning effort;
+the coordinator does not override them on spawn.
+
 For bounded engineering delegation, use the project-scoped roles below. For independent review, use the project-scoped `heimdall_reviewer` (`.codex/agents/heimdall_reviewer.toml`). Never assume a role label enforces read-only access or proves reviewer independence. Native Codex manages agent spawning; `scripts/factory` only observes lifecycle boundaries and validates evidence. **Only one active factory node may use a given Git worktree**. Use separate worktrees for simultaneous WRITE nodes and verify integration before acceptance; otherwise serialize nodes.
 
 The Sol coordinator receives the user prompt and delegates substantive routine
@@ -24,8 +30,9 @@ controller assignment. For a WRITE, dispatch the node owner only after
 `scripts/factory begin` succeeds and acquires the worktree lease. After the
 worker returns, Sol compares the returned A/E/R with the delegation and decides
 acceptance. Delegated WRITEs require independent Sol review and
-`scripts/factory validate`. Report a blocker when no substantive Luna assignment
-is eligible. A Luna launch receipt records a launch only.
+`scripts/factory validate`. If Luna is unavailable for an otherwise eligible substantive assignment, report
+a blocker. A conversational task with no substantive Luna assignment proceeds
+without spawning one; orchestration rules do not require a launch on every turn.
 
 Sol owns decisions and native agent orchestration. Luna executes operational
 tools, including web and MCP tools, shell commands, edits, tests, Git operations,
@@ -36,8 +43,11 @@ completion event. Do not poll snapshots to check whether an agent has completed.
 Process monitoring means observing a command or process Luna owns. Waiting for
 an agent completion event is orchestration and remains with Sol.
 
-Hosted WebSearch and other native tools that the runtime does not emit to a
-hook are policy-only. The hook cannot enforce routing for those tools.
+The configured synchronous `PreToolUse` hook routes the V2 spawn tool,
+`Bash`, `apply_patch`, and `mcp__*` tools. It does not cover hosted WebSearch
+or native tools that emit no matching hook event; those routes remain
+policy-only. A hook decision is a guardrail for covered calls, not proof of
+role identity or a substitute for host sandbox and approval controls.
 
 For factory review, read-only means assessing a supplied evidence packet. The
 reviewer has no shell or edit assignment. A Luna collector independent of the
@@ -45,8 +55,11 @@ author gathers the actual diff, relevant source, and command observations.
 Tie the evidence to the candidate revision and any relevant uncommitted changes.
 Sol checks the evidence and returns findings or specific requests for more
 observations. Hold acceptance if evidence is missing or the candidate changes.
-Project hooks and role settings restrict covered tools. The host owns sandbox
-permissions and any additional tools exposed to the reviewer.
+Reasoning and reviewer profiles disable shell, permission requests, apps, and
+plugins through supported feature switches. Custom agent files do not override
+the parent sandbox. Reviewer instructions require evidence-only review, but
+role policy does not prove role identity or constrain tools supplied outside
+those switches.
 
 - **Use Sol when a decision is needed.** Examples include interpreting ambiguous
   requirements, reconciling conflicting evidence, choosing among designs with
@@ -64,20 +77,21 @@ permissions and any additional tools exposed to the reviewer.
   decision needed. Sol resolves it or raises it with the user if the decision
   belongs to them.
 - Start each subagent with fresh conversation context. Set `fork_turns` to
-  `none` on V2 and keep `fork_context` false on V1. The coordinator writes a
+  `none` and provide a non-empty `task_name`. The coordinator writes a
   self-contained packet with the node’s A/E/R, the minimum accepted inputs,
   owned paths, and the expected result. Share only the excerpts needed to
   perform the node. Keep the parent transcript and unrelated work out of the
   packet. If fresh context, the pinned role, or its model is unavailable,
   stop the affected work and report the blocker.
 
-Trusted Codex CLI sessions in this release repository use a spawn hook to
-check exact role/model pairs and a Stop hook to require a successful Luna
-launch in the current turn. If the receipt is missing, the Stop hook asks
-for one continuation and then reports a policy failure. Completion still
-requires the worker's result.
-Use a trusted Codex CLI session with the project hooks active for enforced
-routing. Report missing hook coverage as a blocker before claiming enforcement.
+In the correct trusted local Codex CLI session, inspect `/hooks` and confirm
+the project hook is enabled. Review the changed command and its resolved target
+there before trusting routing. The synchronous `PreToolUse` hook covers only
+V2 `collaborationspawn_agent`, `Bash`, `apply_patch`, and `mcp__*` calls that
+match its configured matcher; it has no prompt, post-tool, or Stop receipt gate.
+Do not poll snapshots to determine whether an agent has finished: use the
+native completion event. The factory still requires the worker's returned
+evidence and its own validation gates.
 Use `heimdall_reviewer` for independent factory review. Built-in `/review`
 requires shell inspection, which this workflow routes to Luna.
 
