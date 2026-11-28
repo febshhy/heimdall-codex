@@ -146,9 +146,17 @@ The installer ships Heimdall's `.codex/agents/` profiles into the target
 project. Configure its Codex settings, hooks, and execpolicy rules separately.
 The clone's `.codex/config.toml` sets `workspace-write`, `on-request`, and
 `auto_review` defaults when you open that clone as a trusted project in Codex
-CLI. Its `PreToolUse` hook invokes `.codex/model-routing.sh` from the Git root
-of the current directory. Review the changed hook in Codex's `/hooks` view
-before trusting it. Opening the Heimdall clone does not configure your
+CLI. It also enables native automatic context compaction at 64,000 tokens.
+Compaction summarizes older conversation context so Codex can keep working; it
+does not delete project files or saved conversation history. This setting is
+local to the Heimdall release clone and the installer does not add it to an
+application project. To use it in an application, add
+`model_auto_compact_token_limit = 64000` to that project's trusted
+`.codex/config.toml`, then start a new Codex session.
+
+The Heimdall clone's `PreToolUse` hook invokes `.codex/model-routing.sh` from
+the current directory's Git root. Review it in Codex's `/hooks` view before
+trusting it. Opening the Heimdall clone does not configure your
 application. Automatic review can approve or deny eligible approval requests.
 It does not remove sandbox or managed policy restrictions. CLI options can
 override configuration, and organization or system managed requirements can

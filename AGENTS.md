@@ -76,13 +76,13 @@ those switches.
   falls outside the agreed procedure, Luna returns the evidence and the
   decision needed. Sol resolves it or raises it with the user if the decision
   belongs to them.
-- Start each subagent with fresh conversation context. Set `fork_turns` to
-  `none` and provide a non-empty `task_name`. The coordinator writes a
-  self-contained packet with the node’s A/E/R, the minimum accepted inputs,
-  owned paths, and the expected result. Share only the excerpts needed to
-  perform the node. Keep the parent transcript and unrelated work out of the
-  packet. If fresh context, the pinned role, or its model is unavailable,
-  stop the affected work and report the blocker.
+- Keep subagent prompts short and self-contained: include A/E/R, minimum
+  accepted inputs, owned paths, expected outputs, and pointers to readable
+  sources or evidence. Use `fork_turns = "none"`: subagents receive no parent
+  chat history, while role and repository instructions still apply. Give
+  evidence-only reviewers targeted excerpts and readable evidence pointers;
+  never paste transcripts or full logs. If the configured role or model is
+  unavailable, report the blocker.
 
 In the correct trusted local Codex CLI session, inspect `/hooks` and confirm
 the project hook is enabled. Review the changed command and its resolved target
