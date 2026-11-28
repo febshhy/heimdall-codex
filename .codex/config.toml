@@ -4,6 +4,7 @@ review_model = "gpt-6.2-sol"
 approval_policy = "on-request"
 approvals_reviewer = "auto_review"
 sandbox_mode = "workspace-write"
+model_auto_compact_token_limit = 64000
 
 [agents]
 enabled = true
